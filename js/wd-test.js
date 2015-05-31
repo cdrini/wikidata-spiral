@@ -10,7 +10,7 @@ var opts = {
 	root: 'Q5582',
 	property: 'P170',
 	langs: ['en', 'fr'],
-	maxSlices: 20,
+	pageSize: 20,
 	slices: 12,
 	autoScroll: false
 };
@@ -96,9 +96,9 @@ function go(rootId, prop) {
 			data = data.items;
 
 			if(!data.length) return;
-			if(data.length > opts.maxSlices) {
-				console.warn("Too many slices (" + data.length + ")! Showing only top " +  opts.maxSlices + ".");
-				data = data.slice(0, opts.maxSlices);
+			if(data.length > opts.pageSize) {
+				console.warn("Too many slices (" + data.length + ")! Showing only top " +  opts.pageSize + ".");
+				data = data.slice(0, opts.pageSize);
 			}
 
 			var ids = 'Q' + data.join('|Q');
@@ -183,4 +183,21 @@ $(document).on('mousewheel', function(e){
     else{
         forward(e);
     }
+});
+
+var touchStartY = 0;
+Snap(document.body).touchstart(function(ev) {
+	touchStartY = ev.changedTouches[0].pageY;
+});
+
+Snap(document.body).touchend(function(ev) {
+	var touchEndY = ev.changedTouches[0].pageY;
+
+	if(touchEndY - touchStartY > 0) {
+		// scroll up
+		backward(ev);
+	} else if (touchEndY - touchStartY < 0) {
+		// scroll down
+		forward(ev);
+	}
 });

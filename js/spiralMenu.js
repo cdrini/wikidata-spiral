@@ -147,6 +147,12 @@ SpiralMenu.prototype.draw = function() {
 	// create svg
 	if (!this.svg) {
 		this.svg = Snap(this.canvasWidth, this.canvasHeight);
+		/* this does make it look better on mobile, but makes it impossible to zoom :/
+		this.svg.attr({
+			viewBox: '0 0 ' + this.canvasWidth + ' ' + this.canvasHeight,
+			width: '100%',
+			height: '100%'
+		});*/
 
 		this.svg.spiral = this.svg.group()
 		                      .addClass('spiral');
