@@ -67,7 +67,7 @@ SpiralMenuItem.prototype.getId = function() {
 SpiralMenuItem.prototype.setBackgroundImage = function(url) {
 	this.backgroundImage = url;
 	if(this.element) {
-		this.element.spiralMenu.update(this);
+		this.element.spiralMenu.updateSlice(this);
 	}
 }
 /*
@@ -111,6 +111,7 @@ function SpiralMenu(setup) {
 	setParam(this, setup, 'onClick'         , sampleClickFn ); 
 	setParam(this, setup, 'animate'         , true          );
 	setParam(this, setup, 'animationLength' , 500           ); // in ms
+	setParam(this, setup, 'maxSlices'       , 12           ); // slices to display at a time
 	
 	this.sourceRoot = this.root;         // The 'true' root
 	this.currentRoot = this.sourceRoot;  // The root as a result of navigation. Could change.
@@ -123,13 +124,15 @@ function SpiralMenu(setup) {
 	this.canvasHeight = this.size + this.titleSize;
 
 	this.outerRadius = (this.size - 20)/2; // how much the circle will expand on hover(?)
-	this.innerRadius = this.outerRadius*0.6;
+	this.innerRadius = this.outerRadius*0.5;
 
 	this.center = {
 		x: this.size/2 + this.titleSize,
 		y: this.size/2 + this.titleSize
 	};
 
+	this.startIndex = 0; // the index of this.currentRoot.children which we are showing
+	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
 }
 
 /**
@@ -148,9 +151,9 @@ SpiralMenu.prototype.draw = function() {
 	}
 
 	// draw slices
-	for(var i = 0; i < this.currentRoot.children.length; ++i) {
-		var slice = this.drawSlice(this.currentRoot.children[i], i);
-		this.svg.spiral.add(slice);
+	this.slices = [];
+	for(var i = 0; i < this.sliceCount; ++i) {
+		this.drawSlice(this.currentRoot.children[i], i);
 	}
 
 	// draw root
@@ -303,28 +306,16 @@ SpiralMenu.prototype.drawRoot = function() {
 };
 
 /**
- * Creates a spiral menu's slice element. Private, must be used after draw()
+ * Creates a spiral menu's slice path 'd' string
  * 
- * @param {SpiralMenuItem} smi - the item to create a slice for
  * @param {Number} index - the index on the circle
- * @return {Element} the slice's group
+ * @return {String} the slice's path string
  */
-SpiralMenu.prototype.drawSlice = function(smi, index) {
-	var sm = this;
-	var children = this.currentRoot.children.length;
-
-	var s = this.svg;
-	smi.element = s.group();
-	smi.element.spiralMenu = this;
-	smi.element.attr({
-		class: 'slice' + (smi.isLeaf()? ' leaf' : ''),
-		title: smi.title
-	});
-	var group = smi.element;
-
+SpiralMenu.prototype.createSlicePath = function(index) {
+	var slices = this.sliceCount;
 	var PI = Math.PI;
 
-	var sliceAngle = 2*PI / children;
+	var sliceAngle = 2*PI / slices;
 	var startDegree = index*sliceAngle;
 	var endDegree = startDegree + sliceAngle;
 	var innerStartCoord = {
@@ -351,6 +342,83 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 		'A', this.innerRadius, this.innerRadius, 0, 0, 0, innerStartCoord.x, innerStartCoord.y,
 		'Z');
 
+	return pathStr;
+}
+
+/**
+ * Creates a spiral menu's slice path 'd' string, used when removing the slice.
+ * 
+ * @param {Number} index - the index on the circle
+ * @param {String} dir - one of left, right
+ * @return {String} the slice's path string
+ */
+SpiralMenu.prototype.createEmptySlicePath = function(index, dir) {
+	var slices = this.sliceCount;
+	var PI = Math.PI;
+
+	var sliceAngle = 2*PI / slices;
+	var startDegree = index*sliceAngle;
+	var endDegree = startDegree + sliceAngle;
+	var innerStartCoord = {
+		x: this.center.x + this.innerRadius * Math.cos(startDegree), // TODO optimize
+		y: this.center.y + this.innerRadius * Math.sin(startDegree)
+	};
+	var innerEndCoord = {
+		x: this.center.x + this.innerRadius * Math.cos(endDegree),
+		y: this.center.y + this.innerRadius * Math.sin(endDegree)
+	};
+	var outerStartCoord = {
+		x: this.center.x + this.outerRadius * Math.cos(startDegree),
+		y: this.center.y + this.outerRadius * Math.sin(startDegree)
+	};
+	var outerEndCoord = {
+		x: this.center.x + this.outerRadius * Math.cos(endDegree),
+		y: this.center.y + this.outerRadius * Math.sin(endDegree)
+	};
+
+	// create SVG slice
+	var pathStr = "";
+
+	switch(dir) {
+		case 'start':
+			pathStr = quickPath('M', outerStartCoord.x, outerStartCoord.y,
+				'A', this.outerRadius, this.outerRadius, 0, 0, 1, outerStartCoord.x+0.1, outerStartCoord.y+0.1,
+				'L', innerStartCoord.x, innerStartCoord.y,
+				'A', this.innerRadius, this.innerRadius, 0, 0, 0, innerStartCoord.x-0.1, innerStartCoord.y-0.1,
+				'Z');
+			break;
+		case 'end':
+			pathStr = quickPath('M', outerEndCoord.x, outerEndCoord.y,
+				'A', this.outerRadius, this.outerRadius, 0, 0, 1, outerEndCoord.x+0.1, outerEndCoord.y+0.1,
+				'L', innerEndCoord.x, innerEndCoord.y,
+				'A', this.innerRadius, this.innerRadius, 0, 0, 0, innerEndCoord.x-0.1, innerEndCoord.y-0.1,
+				'Z');
+	}
+
+	return pathStr;
+}
+
+/**
+ * Creates a spiral menu's slice element. Private, must be used after draw()
+ * 
+ * @param {SpiralMenuItem} smi - the item to create a slice for
+ * @param {Number} index - the index on the circle
+ * @return {Element} the slice's group
+ */
+SpiralMenu.prototype.drawSlice = function(smi, index) {
+	var sm = this;
+	var slices = this.sliceCount;
+
+	var s = this.svg;
+	smi.element = s.group();
+	smi.element.spiralMenu = this;
+	smi.element.attr({
+		class: 'slice' + (smi.isLeaf()? ' leaf' : ''),
+		title: smi.title
+	});
+	var group = smi.element;
+
+	var pathStr = sm.createSlicePath(index);
 	var slice = s.path(pathStr);
 	slice.attr({
 		style: "fill:" + randColor()
@@ -397,6 +465,14 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 		open(smi.href);
 	});
 
+	// attach where necessary
+	this.svg.spiral.add(group);
+	this.slices[index] = {
+		shape: slice,
+		group: group,
+		smi: smi
+	};
+
 	return smi.element;
 };
 
@@ -418,6 +494,7 @@ SpiralMenu.prototype.promoteChild = function(newRoot) {
 	// update root, creating way to go back if necessary
 	newRoot.parent = this.currentRoot;
 	this.currentRoot = newRoot;
+	this.sliceCount = Math.min(this.maxSlices, newRoot.children.length);
 
 	// redraw
 	this.draw();
@@ -437,7 +514,7 @@ SpiralMenu.prototype.demoteRoot = function() {
 	this.draw();
 }
 
-SpiralMenu.prototype.update = function(smi) {
+SpiralMenu.prototype.updateSlice = function(smi) {
 	var s = this.svg;
 
 	// Update backgroundImage
@@ -445,8 +522,44 @@ SpiralMenu.prototype.update = function(smi) {
 		// If we already had an image
 		var img = smi.element.select('image');
 		if(img) {
+			var clipPathId = img.attr('clip-path').match(/#[^\)]*/);
+			if(!clipPathId) {
+				console.log(img);
+				console.log(img.attr('clip-path'));
+			}
+			clipPathId = clipPathId[0];
+			var clipPath = Snap(clipPathId + ' > path');
+			var bbox = clipPath.getBBox();
+
+			
+			var anim = clipPath.inAnim();
+
+			if (anim.length) {
+				anim = anim[anim.length-1];
+
+				// create temporary at end of anim, to get bbox
+				var clone = clipPath.clone();
+				clone.attr(anim.anim.attr);
+				bbox = clone.getBBox();
+				clone.remove();
+				img.attr({
+					'xlink:href': smi.backgroundImage
+				});				
+				img.animate({
+					x: Math.round(bbox.x),
+					y: Math.round(bbox.y),
+					width: Math.round(bbox.w),
+					height: Math.round(bbox.h)
+				}, this.animationLength);
+				img.inAnim()[0].status(anim.status());
+			}
+			
 			img.attr({
-				'xlink:href': smi.backgroundImage
+				'xlink:href': smi.backgroundImage,
+				x: Math.round(bbox.x),
+				y: Math.round(bbox.y),
+				width: Math.round(bbox.w),
+				height: Math.round(bbox.h)
 			});
 			return;
 		}
@@ -458,13 +571,117 @@ SpiralMenu.prototype.update = function(smi) {
 		var img = s.image(smi.backgroundImage,
 			Math.round(bbox.x),
 			Math.round(bbox.y),
-			Math.ceil(bbox.w),
-			Math.ceil(bbox.h));
+			Math.round(bbox.w),
+			Math.round(bbox.h));
 		img.attr({
 			preserveAspectRatio: 'xMidYMid slice',
 			clip: clipShape
 		});
 		smi.element.add(img);
 	}
+}
 
+/**
+ * Scrolls next child item into view
+ * 
+ * @return {Element} the new slice's group (if a new one was created)
+ */
+SpiralMenu.prototype.next = function() {
+	var sm = this;
+	var newI = this.startIndex + this.sliceCount;
+
+	// if no next item, exit
+	if (newI >= this.currentRoot.children.length) {
+		return;
+	}
+
+	// get first slice and shrink/remove it
+	var slice = this.slices[0];
+	slice.shape.animate({
+		d: sm.createEmptySlicePath(0, 'start')
+	}, this.animationLength, function() {
+		slice.group.remove();
+		slice.shape.remove();
+	});
+	this.slices.shift();
+
+	// create new slice for next item
+	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], this.sliceCount-1);
+	var newSlice = this.slices[this.sliceCount - 1];
+	newSlice.shape.attr({
+		d: sm.createEmptySlicePath(this.sliceCount-1, 'end')
+	});
+	newSlice.group.attr({
+		opacity: 0
+	});
+	newSlice.shape.animate({
+		d: sm.createSlicePath(this.sliceCount-1)
+	}, this.animationLength);
+	newSlice.group.animate({
+		opacity: 1
+	}, this.animationLength);
+
+	// move all the other slices forward 1
+	for(var i = 0; i < this.slices.length - 1; ++i) {
+		this.slices[i].shape.animate({
+			d: sm.createSlicePath(i)
+		}, this.animationLength);
+		sm.updateSlice(sm.slices[i].smi);
+	}
+	this.startIndex++;
+
+	return newSliceGroup;
+}
+
+/**
+ * Scrolls to previous child item into view
+ * 
+ * @return {Element} the new slice's group (if a new one was created)
+ */
+SpiralMenu.prototype.previous = function() {
+	var sm = this;
+	var newI = this.startIndex - 1;
+
+	// if no previous item, exit
+	if (newI < 0) {
+		return;
+	}
+
+	// get last slice and shrink/remove it
+	var slice = this.slices[this.sliceCount - 1];
+	slice.shape.animate({
+		d: sm.createEmptySlicePath(this.sliceCount - 1, 'end')
+	}, this.animationLength, function() {
+		slice.group.remove();
+		slice.shape.remove();
+	});
+	this.slices.unshift({});
+	this.slices.pop();
+
+	// create new slice for next item
+	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], 0);
+	var newSlice = this.slices[0];
+	newSlice.shape.attr({
+		d: sm.createEmptySlicePath(0, 'start')
+	});
+	newSlice.group.attr({
+		opacity: 0
+	});
+	newSlice.shape.animate({
+		d: sm.createSlicePath(0)
+	}, this.animationLength);
+	newSlice.group.animate({
+		opacity: 1
+	}, this.animationLength);
+
+	// move all the other slices back 1
+	for(var i = 1; i < this.slices.length; ++i) {
+		this.slices[i].shape.animate({
+			d: sm.createSlicePath(i)
+		}, this.animationLength);
+		sm.updateSlice(sm.slices[i].smi);
+	}
+	this.startIndex--;
+
+	return newSliceGroup;
 }

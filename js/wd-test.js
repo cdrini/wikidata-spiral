@@ -10,7 +10,7 @@ var opts = {
 	root: 'Q5582',
 	property: 'P170',
 	langs: ['en', 'fr'],
-	maxSlices: 12
+	maxSlices: 20
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
@@ -72,7 +72,11 @@ function parseURL() {
 						});
 
 	for(var i = 0; i < params.length; ++i) {
-		opts[params[i].param] = params[i].value;
+		if(opts[params[i].param] instanceof Array){
+			opts[params[i].param] = params[i].value.split(',');
+		} else {
+			opts[params[i].param] = params[i].value;
+		}
 	}
 }
 var rootNode;
@@ -146,3 +150,28 @@ function clickHandler(isChild, smi) {
 
 parseURL();
 go(opts.root, opts.property);
+
+function forward(e) {
+	e.preventDefault();
+	sm.next();
+}
+function backward(e) {
+	e.preventDefault();
+	sm.previous();
+}
+$(document).on('keyup', null, 'space', forward);
+$(document).on('keyup', null, 'right', forward);
+$(document).on('keyup', null, 'down', forward);
+
+$(document).on('keyup', null, 'shift+space', backward);
+$(document).on('keyup', null, 'left', backward);
+$(document).on('keyup', null, 'up', backward);
+
+$(document).on('mousewheel', function(e){
+    if(e.originalEvent.wheelDelta /120 > 0) {
+        backward(e);
+    }
+    else{
+        forward(e);
+    }
+});
