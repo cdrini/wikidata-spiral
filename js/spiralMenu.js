@@ -106,12 +106,14 @@ SpiralMenuItem.prototype.draw = function() {
  */
 function SpiralMenu(setup) {
 	var sampleClickFn = function(isChild, smi){};
-	setParam(this, setup, 'root'            , null          );
-	setParam(this, setup, 'size'            , 400           ); // in px
-	setParam(this, setup, 'onClick'         , sampleClickFn ); 
-	setParam(this, setup, 'animate'         , true          );
-	setParam(this, setup, 'animationLength' , 500           ); // in ms
-	setParam(this, setup, 'maxSlices'       , 12           ); // slices to display at a time
+	setParam(this, setup, 'root'               , null          );
+	setParam(this, setup, 'size'               , 400           ); // in px
+	setParam(this, setup, 'onClick'            , sampleClickFn ); 
+	setParam(this, setup, 'animate'            , true          );
+	setParam(this, setup, 'animationLength'    , 500           ); // in ms
+	setParam(this, setup, 'maxSlices'          , 12            ); // slices to display at a time
+	setParam(this, setup, 'autoScroll'         , false         );
+	setParam(this, setup, 'autoScrollLength'   , 2500          ); // in ms
 	
 	this.sourceRoot = this.root;         // The 'true' root
 	this.currentRoot = this.sourceRoot;  // The root as a result of navigation. Could change.
@@ -162,6 +164,10 @@ SpiralMenu.prototype.draw = function() {
 	// draw title
 	this.drawTitle();
 
+	// begin autoscrolling
+	if(this.autoScroll) {
+		this.startAutoScroll();
+	}
 	return this.svg;
 };
 
@@ -456,8 +462,12 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 	// attach hover handlers
 	group.hover(function() {
 		sm.updateTitle(smi.title);
+		sm.stopAutoScroll();
 	}, function() {
 		sm.updateTitle(sm.currentRoot.title);
+		if(sm.autoScroll) {
+			sm.startAutoScroll();
+		}
 	});
 
 	// dbl click handlers
@@ -684,4 +694,28 @@ SpiralMenu.prototype.previous = function() {
 	this.startIndex--;
 
 	return newSliceGroup;
+};
+
+/**
+ * Begins auto scrolling the UI.
+ * 
+ * @param {Number} ms - length of scroll interval. 
+ */
+SpiralMenu.prototype.startAutoScroll = function(ms) {
+	var sm = this;
+	this.autoScrollInterval = setInterval(function() {
+		if(!sm.next()) {
+			sm.stopAutoScroll();
+		}
+	}, ms || this.autoScrollLength);
+};
+
+/**
+ * Stops auto scrolling the UI.
+ * 
+ */
+SpiralMenu.prototype.stopAutoScroll = function() {
+	if(!this.autoScrollInterval) return;
+	clearInterval(this.autoScrollInterval);
+	this.autoScrollInterval = 0;
 }

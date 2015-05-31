@@ -2,10 +2,11 @@ html, body {
   width: 100%;
   height: 100%;
   margin: 0;
+  background: #ececec;
 }
 
 svg {
-	display:block;
+	display: block;
 	margin: auto;
 }
 .root, .slice {

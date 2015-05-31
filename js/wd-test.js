@@ -10,11 +10,16 @@ var opts = {
 	root: 'Q5582',
 	property: 'P170',
 	langs: ['en', 'fr'],
-	maxSlices: 20
+	maxSlices: 20,
+	slices: 12,
+	autoScroll: false
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
 
+function isBoolean(bool) {
+	return bool === true || bool === false;
+}
 function findLabel(entity) {
 	// try for lan
 	var label = entity.getLabel(lang);
@@ -74,7 +79,9 @@ function parseURL() {
 	for(var i = 0; i < params.length; ++i) {
 		if(opts[params[i].param] instanceof Array){
 			opts[params[i].param] = params[i].value.split(',');
-		} else {
+		} else if (isBoolean(opts[params[i].param])) {
+			opts[params[i].param] = params[i].value === 'true' ? true : false;
+		}	else {
 			opts[params[i].param] = params[i].value;
 		}
 	}
@@ -127,7 +134,9 @@ function go(rootId, prop) {
 						sm = new SpiralMenu({
 							root: rootNode,
 							size: 600,
-							animate: false
+							animate: false,
+							maxSlices: opts.slices,
+							autoScroll: opts.autoScroll
 						});
 					}
 
