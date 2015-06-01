@@ -1,8 +1,18 @@
 var samples = [
 	{
+		desc: 'Created by van Gogh',
+		root: 'Q5582',
+		property: 'P170'
+	},
+	{
 		desc: 'Created by da Vinci',
 		root: 'Q762',
 		property: 'P170'
+	},
+	{
+		desc: 'Subclasses of Food',
+		root: 'Q2095',
+		property: 'P279'
 	}
 ];
 
@@ -10,7 +20,7 @@ var opts = {
 	root: 'Q5582',
 	property: 'P170',
 	langs: ['en', 'fr'],
-	pageSize: 20,
+	pageSize: 49,
 	slices: 12,
 	autoScroll: false
 };
@@ -136,7 +146,7 @@ function go(rootId, prop) {
 							size: 600,
 							animate: false,
 							maxSlices: opts.slices,
-							autoScroll: opts.autoScroll
+							autoScroll: opts.autoScroll,
 						});
 					}
 
@@ -161,11 +171,9 @@ parseURL();
 go(opts.root, opts.property);
 
 function forward(e) {
-	e.preventDefault();
 	sm.next();
 }
 function backward(e) {
-	e.preventDefault();
 	sm.previous();
 }
 $(document).on('keyup', null, 'space', forward);
@@ -177,12 +185,12 @@ $(document).on('keyup', null, 'left', backward);
 $(document).on('keyup', null, 'up', backward);
 
 $(document).on('mousewheel', function(e){
-    if(e.originalEvent.wheelDelta /120 > 0) {
-        backward(e);
-    }
-    else{
-        forward(e);
-    }
+  if(e.originalEvent.wheelDelta /120 > 0) {
+      backward(e);
+  }
+  else {
+      forward(e);
+  }
 });
 
 var touchStartY = 0;
@@ -192,6 +200,8 @@ Snap(document.body).touchstart(function(ev) {
 
 Snap(document.body).touchend(function(ev) {
 	var touchEndY = ev.changedTouches[0].pageY;
+
+	if(Math.abs(touchEndY - touchStartY) < 10) return;
 
 	if(touchEndY - touchStartY > 0) {
 		// scroll up

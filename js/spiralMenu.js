@@ -617,7 +617,11 @@ SpiralMenu.prototype.next = function() {
 		d: sm.createEmptySlicePath(0, 'start')
 	}, this.animationLength, function() {
 		slice.group.remove();
-		slice.shape.remove();
+		if (slice.shape.parent().type == 'clipPath') {
+			slice.shape.parent().remove();
+		} else {
+			slice.shape.remove();
+		}
 	});
 	this.slices.shift();
 
@@ -669,7 +673,11 @@ SpiralMenu.prototype.previous = function() {
 		d: sm.createEmptySlicePath(this.sliceCount - 1, 'end')
 	}, this.animationLength, function() {
 		slice.group.remove();
-		slice.shape.remove();
+		if (slice.shape.parent().type == 'clipPath') {
+			slice.shape.parent().remove();
+		} else {
+			slice.shape.remove();
+		}
 	});
 	this.slices.unshift({});
 	this.slices.pop();

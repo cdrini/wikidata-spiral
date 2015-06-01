@@ -1,36 +1,44 @@
 html, body {
-  width: 100%;
-  height: 100%;
+  background: white;
   margin: 0;
-  background: #ececec;
+
+  font-family: "Georgia";
 }
 
-svg {
-	display: block;
-	margin: auto;
-}
-.root, .slice {
-	cursor: pointer;
-}
-
-.slice {
-	fill: #CCC;
-}
-
-.root {
-	fill: #069;
-
-	transition: transform 0.3s;
-}
-
-.root:hover {
-	transform: scale(1.1);
-}
-
-.title {
-  font-style: italic;
-  font-size: 64.821251px;
-  font-family: Georgia;
+body {
+  padding: 10px;
   text-align: center;
-  text-anchor: middle;
+}
+
+h1 {
+  text-align: center;
+}
+
+h1,h2 {
+  font-weight: normal;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+h2+a {
+  font-style: oblique;
+  margin-bottom: 1em;
+}
+
+img {
+  margin: 0 auto;
+  display:block;
+  max-width: 95%;
+}
+
+p, ul {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 500px;
+}
+
+ul {
+  text-align: left;
 }
