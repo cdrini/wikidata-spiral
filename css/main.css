@@ -27,7 +27,7 @@ h2+a {
   margin-bottom: 1em;
 }
 
-img {
+img, video {
   margin: 0 auto;
   display:block;
   max-width: 95%;
