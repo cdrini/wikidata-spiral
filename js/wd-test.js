@@ -146,11 +146,12 @@ function go(rootId, prop) {
 							size: 600,
 							animate: false,
 							maxSlices: opts.slices,
-							autoScroll: opts.autoScroll,
+							autoScroll: opts.autoScroll
 						});
 					}
 
-					sm.draw();
+					var svg = sm.draw();
+					svg.insertBefore(Snap('small'));
 				});
 	  });
 }
@@ -184,7 +185,8 @@ $(document).on('keyup', null, 'shift+space', backward);
 $(document).on('keyup', null, 'left', backward);
 $(document).on('keyup', null, 'up', backward);
 
-$(document).on('mousewheel', function(e){
+$(document.body).on('mousewheel', function(e){
+	e.preventDefault();
   if(e.originalEvent.wheelDelta /120 > 0) {
       backward(e);
   }
