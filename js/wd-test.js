@@ -35,7 +35,11 @@ function findLabel(entity) {
 	var label = entity.getLabel(lang);
 }
 function findImage(entity, smi) {
-	var imgs = entity.getClaim('P18');
+	var imgs = entity.getClaim('P18') || // image
+	           entity.getClaim('P41') || // flag
+	           entity.getClaim('P948') || // wikivoyage banner
+	           entity.getClaim('P94'); // coat of arms
+
 	if(!imgs) return null;
 
 	return $.ajax({

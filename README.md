@@ -10,6 +10,8 @@ Originally created as a means to explore Wikidata's subclass hierarchy, Wikidata
 * Hovering over a slice will display its label.
 * Double clicking on a slice will open its corresponding Wikidata page.
 
+Note that the app won't show more than 49 slices, or 1 Wikidata query (for now).
+
 ## Parameters
 (Accessible as URL parameters)
 
@@ -25,7 +27,14 @@ autoScroll    | Boolean       | false         | Whether the spiral should automa
 * Subclasses of food: [root=Q2095&property=P279](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&property=P279)
 * Created by van Gogh: [root=Q5582&property=P170&slices=9](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q5582&property=P170&slices=9)
 
-#Credits
+# Credits
+
+## APIs/resources
+* [Wikidata](https://www.wikidata.org/w/api.php)
+* [WDQ](https://wdq.wmflabs.org/), by Magnus Manske
+* [Wikimedia Commons](https://commons.wikimedia.org/w/api.php) for images
+
+## Third party libraries
 * [Snap.svg](https://github.com/adobe-webplatform/Snap.svg)
 * [jQuery](https://github.com/jquery/jquery)
 * [jQuery Hotkeys](https://github.com/jeresig/jquery.hotkeys)
