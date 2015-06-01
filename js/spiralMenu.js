@@ -80,7 +80,7 @@ SpiralMenuItem.prototype.addChild = function(smi) {
 };
 
 SpiralMenuItem.prototype.isLeaf = function() {
-	return this.children.length === 0 ? true : false;
+	return this.children.length === 0;
 };
 
 SpiralMenuItem.prototype.draw = function() {
@@ -143,10 +143,13 @@ function SpiralMenu(setup) {
  * @return {Element} the svg element
  */
 SpiralMenu.prototype.draw = function() {
+
+	// Update sliceCount
+	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
 	
 	// create svg
 	if (!this.svg) {
-		this.svg = Snap(this.canvasWidth, this.canvasHeight);
+		this.svg = Snap(this.canvasWidth, this.canvasHeight).addClass('spiral-menu');
 		/* this does make it look better on mobile, but makes it impossible to zoom :/
 		this.svg.attr({
 			viewBox: '0 0 ' + this.canvasWidth + ' ' + this.canvasHeight,
@@ -199,8 +202,26 @@ SpiralMenu.prototype.drawInnerCircle = function(asPath) {
 	if(!asPath) {
 		return this.svg.circle(this.center.x, this.center.y, this.innerRadius);
 	} else {
-		return this.svg.path(circlePath((this.center.x, this.center.y, this.innerRadius)));
+		return this.svg.path(circlePath(this.center.x, this.center.y, this.innerRadius));
 	}
+}
+
+/**
+ * Creates path string of circle at the size of the outer circle
+ * 
+ * @return {String} the circle's path string
+ */
+SpiralMenu.prototype.outerCirclePath = function() {
+	return circlePath(this.center.x, this.center.y, this.outerRadius);
+}
+
+/**
+ * Creates path string of circle at the size of the inner circle
+ * 
+ * @return {String} the circle's path string
+ */
+SpiralMenu.prototype.innerCirclePath = function() {
+	return circlePath(this.center.x, this.center.y, this.innerRadius);
 }
 
 /**
@@ -212,6 +233,12 @@ SpiralMenu.prototype.drawTitle = function() {
 	var sm = this;
 	var s = this.svg;
 	var root = this.currentRoot;
+
+	// Title already created
+	if(this.svg.title) {
+		sm.resetTitle();
+		return this.svg.title;
+	}
 
 	var circle = this.drawOuterCircle(true);
 	var path = circle.attr('d');
@@ -235,11 +262,19 @@ SpiralMenu.prototype.drawTitle = function() {
 /**
  * Update title content
  * 
- * @param {string} text - the new title
+ * @param {string} text - the new title.
  * @return {Element} the title's element
  */
 SpiralMenu.prototype.updateTitle = function(text) {
 	return this.svg.title.textPath.node.innerHTML = text;
+}
+/**
+ * Sets title content to currentRoot's title
+ * 
+ * @return {Element} the title's element
+ */
+SpiralMenu.prototype.resetTitle = function() {
+	return this.svg.title.textPath.node.innerHTML = this.currentRoot.title;
 }
 /**
  * Creates the spiral menu's root element. Private, must be used after draw()
@@ -326,6 +361,10 @@ SpiralMenu.prototype.drawRoot = function() {
 SpiralMenu.prototype.createSlicePath = function(index) {
 	var slices = this.sliceCount;
 	var PI = Math.PI;
+
+	if(slices == 1) {
+		return this.outerCirclePath();
+	}
 
 	var sliceAngle = 2*PI / slices;
 	var startDegree = index*sliceAngle;
@@ -493,35 +532,53 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 };
 
 SpiralMenu.prototype.promoteChild = function(newRoot) {
+	var sm = this;
+
 	// remove root
 	this.currentRoot.element.remove();
 	this.currentRoot.element = null;
 
-	// remove all other children
+	// remove all visible slices
 	var newRootId = newRoot.getId();
-	for(var i = 0; i < this.currentRoot.children.length; ++i) {
-		var smi = this.currentRoot.children[i];
-		if (smi.getId() !== newRootId) {
-			smi.element.remove();
-			smi.element = null;
+	var sliceId = 0;
+	for(var i = 0; i < this.sliceCount; ++i) {
+		if(newRootId == this.slices[i].smi.getId()) {
+			sliceId = i;
+			continue; // will animate
 		}
+		this.slices[i].group.remove();
+		this.slices[i].shape.remove();
 	}
+
 
 	// update root, creating way to go back if necessary
 	newRoot.parent = this.currentRoot;
 	this.currentRoot = newRoot;
 	this.sliceCount = Math.min(this.maxSlices, newRoot.children.length);
 
-	// redraw
-	this.draw();
+	// animate slice to root
+	this.slices[sliceId].shape.animate({
+		d: sm.innerCirclePath()
+	}, this.animationLength, mina.linear, function() {
+		sm.slices[sliceId].shape.remove();
+		sm.slices[sliceId].group.remove();
+
+		// redraw
+		sm.startIndex = 0;
+		sm.draw();
+	});
+	sm.updateSlice(newRoot);
 }
 
 SpiralMenu.prototype.demoteRoot = function() {
+	// remove root
+	this.currentRoot.element.remove();
+	this.currentRoot.element = null;
+
 	// remove all children
-	for(var i = 0; i < this.currentRoot.children.length; ++i) {
-		var smi = this.currentRoot.children[i];
-		smi.element.remove();
-		smi.element = null;
+	for(var i = 0; i < this.sliceCount; ++i) {
+		this.slices[i].shape.remove();
+		this.slices[i].group.remove();
 	}
 
 	// update root

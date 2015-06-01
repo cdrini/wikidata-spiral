@@ -150,7 +150,8 @@ function go(rootId, prop) {
 							size: 600,
 							animate: false,
 							maxSlices: opts.slices,
-							autoScroll: opts.autoScroll
+							autoScroll: opts.autoScroll,
+							onClick: clickHandler
 						});
 					}
 
@@ -160,6 +161,7 @@ function go(rootId, prop) {
 	  });
 }
 
+
 function clickHandler(isChild, smi) {
 	if(!isChild && !smi.parent) {
 		console.log("TODO");
@@ -167,12 +169,58 @@ function clickHandler(isChild, smi) {
 	}
 
 	if(smi.isLeaf()) {
-		// load more
-		go(smi.entity.id,opts.property);
+		// must load stuff
+		Snap('svg').attr({
+			'pointerEvents': 'none'
+		}); // avoid double clicking
+		loadChildren(smi, smi.entity.entity.id, opts.property);
 	}
 }
 
+function loadChildren(node, qid, prop){
+	hasClaim(prop, qid)
+	.done(function(data, textStatus, jqXHR) {
+			data = data.items;
+
+			if(!data.length) {
+				return Snap('svg').attr({
+					'pointerEvents': ''
+				}); // avoid double clicking;
+			}
+
+			if(data.length > opts.pageSize) {
+				console.warn("Too many slices (" + data.length + ")! Showing only top " +  opts.pageSize + ".");
+				data = data.slice(0, opts.pageSize);
+			}
+
+			var ids = 'Q' + data.join('|Q');
+
+			getFromQId(ids)
+			.done(function(data, textStatus, jqXHR){
+				// create smi's for children
+				for(var qid in data.entities) {
+					var childEntity = new WD.Entity(data.entities[qid]);
+					var child = new SpiralMenuItem({
+						title: childEntity.getLabel(opts.langs),
+						href: childEntity.getUrl()
+					});
+					child.entity = childEntity;
+					findImage(childEntity, child);
+
+					node.addChild(child);
+				}
+
+				// redraw
+				sm.promoteChild(node);
+				Snap('svg').attr({
+					'pointerEvents': ''
+				}); // avoid double clicking
+			});
+	});
+}
+
 parseURL();
+opts.pageSize = 49;
 go(opts.root, opts.property);
 
 function forward(e) {
