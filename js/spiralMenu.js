@@ -1,9 +1,59 @@
 // Get Snap.svg
-var script = document.createElement('script');
-script.src = "https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.3.0/snap.svg-min.js";
-document.head.appendChild(script);
+if (!Snap) {
+	var script = document.createElement('script');
+	script.src = "https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.3.0/snap.svg-min.js";
+	document.head.appendChild(script);
+}
 
+/**
+ * Calls fn only once, and ignore all future calls within ``wait`` ms of a
+ * previous call.
+ * 
+ * @param {Function} fn - the function to call
+ * @param {Number} wait - in ms, the length of time necessary after a call
+ *                        to trigger another call.
+ */
+function ignoreSpam(fn, wait) {
+	var lastCall = 0;
+	return function() {
+		var t = (new Date()).getTime();
+		if(t - lastCall > wait) {
+			fn.apply(this, arguments);
+		}
+		lastCall = t;
+	};
+}
+/**
+ * Calls fn on every count-th call of fn, so long as each call is within lag 
+ * ms of the last.
+ * 
+ * @example el.click(fixedCall(fn, 1, 300)); // fn is called only if there
+ *                                           // a click occurs >300ms after
+ *                                           // the last click
+ * @param {Function} fn - the function to call
+ * @param {Number} count - the number of times the function must be called
+ *                         in order to actually take effect
+ * @param {Number} lag - in ms, the length of time we wait for another call
+ * @return {Function} a function which only calls fn if called count times,
+ *                    with max lag ms between each call.
+ */
+function fixedCall(fn, count, lag) {
+	var callCount = 0;
+	var interval = 0;
+	return function() {
+		var context = this;
+		var args = arguments;
+		callCount++;
 
+		clearInterval(interval);
+		interval = setTimeout(function() {
+			if(callCount == count) {
+				fn.apply(context, args);
+			}
+			callCount = 0;
+		}, lag);
+	}
+};
 function quickPath() {
 	var result = "";
 	for (var i = 0; i < arguments.length; i++) {
@@ -339,15 +389,21 @@ SpiralMenu.prototype.drawRoot = function() {
 	}
 	// create circle for text wrap
 	// create text
-	// attach click handlers
-	group.click(function() {
+
+	// dbl click handlers
+	group.dblclick(function() {
+		open(root.href);
+	});
+
+	// click handlers
+	group.click(fixedCall(function() {
 		sm.currentRoot.click();
 		sm.clickHandler(false, sm.currentRoot);
 
 		if (sm.currentRoot.parent) {
 			sm.demoteRoot();
 		}
-	});
+	}, 1, 300));
 
 	return root.element;
 };
@@ -492,17 +548,25 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 	} else {
 		slice.addClass('main-shape');
 	}
+
 	// create slice for text wrap
 	// create text
+
+	// dbl click handlers
+	group.dblclick(function() {
+		open(smi.href);
+	});
+
 	// attach click handlers
-	group.click(function() {
+	// fixedCall avoids interferring with dblclick
+	group.click(fixedCall(function() {
 		smi.click();
 		sm.clickHandler(true, smi);
 
 		if (!smi.isLeaf()) {
 			sm.promoteChild(smi);
 		}
-	});
+	}, 1, 300));
 
 	// attach hover handlers
 	group.hover(function() {
@@ -515,10 +579,6 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 		}
 	});
 
-	// dbl click handlers
-	group.dblclick(function() {
-		open(smi.href);
-	});
 
 	// attach where necessary
 	this.svg.spiral.add(group);
