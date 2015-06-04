@@ -16,17 +16,19 @@ Note that the app won't show more than 49 slices, or 1 Wikidata query (for now).
 ## Parameters
 (Accessible as URL parameters)
 
-Name          | Type          | Default       | Description
-------------- | ------------- | ------------- | -------------
-root          | QID           | Q5582         | The item displayed as root
-property      | PID           | P170          | The property to follow. The spiral's slices are determined by ``CLAIM[$property:$root]``
-langs         | CSV           | en,fr         | The language(s) to pull label names as.
-slices        | Integer       | 12            | The number of slices to display at a time.
-autoScroll    | Boolean       | false         | Whether the spiral should automatically scroll.
+Name          | Type          | Default                    | Description
+------------- | ------------- | -------------------------- | -------------
+root          | QID           | Q5582                      | The item displayed as root
+property      | PID           | P170                       | The property to follow. The spiral's slices are determined by ``CLAIM[$property:$root]``
+langs         | CSV           | en,fr                      | The language(s) to pull label names as.
+slices        | Integer       | 12                         | The number of slices to display at a time.
+autoScroll    | Boolean       | false                      | Whether the spiral should automatically scroll.
+query          | WDQ           | ``CLAIM[$property:$root]`` | The Wikidata Query used to determine slices. See [WDQ's Documentation](https://wdq.wmflabs.org/api_documentation.html) for help. The variables ``$property`` and ``$root`` are available for use in the query.
 
 ## Examples
 * Subclasses of food: [root=Q2095&property=P279](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&property=P279)
 * Created by van Gogh: [root=Q5582&property=P170&slices=9](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q5582&property=P170&slices=9)
+* Subclasses/instances of food: [root=Q2095&query=CLAIM[279:$root] OR CLAIM[31:$root]](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&query=CLAIM[279:$root] OR CLAIM[31:$root]) (most browsers should encode automatically)
 
 # Credits
 

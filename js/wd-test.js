@@ -22,7 +22,8 @@ var opts = {
 	langs: ['en', 'fr'],
 	pageSize: 49,
 	slices: 12,
-	autoScroll: false
+	autoScroll: false,
+	query: 'CLAIM[$property:$root]'
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
@@ -68,10 +69,9 @@ function findImage(entity, smi) {
 	if(!imgs) return null;
 
 	return $.ajax({
-		url:'https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&iilimit=1&iiurlwidth=400&titles=' +
-					encodeURIComponent('File:' + imgs[0].mainsnak.datavalue.value),
+	  url:'https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&iilimit=1&iiurlwidth=400&titles=' +
+		   encodeURIComponent('File:' + imgs[0].mainsnak.datavalue.value),
 	  dataType: 'jsonp',
-	  cache: true
 	}).done(function(data, textStatus, jqXHR){
 		var url;
 		data = data.query.pages;
@@ -97,9 +97,21 @@ function WDQ(query) {
 	});
 }
 
-function hasClaim(prop, qid) {
-	return WDQ('CLAIM[' + opts.property.slice(1) + ':' + qid.slice(1) + ']');
+/**
+ * Makes a query for the slices of qid using opts.query. Accepts
+ * 2 variables in the query, $property and $root, corresponding to
+ * opts.property and the current root.
+ * 
+ * @param {String} prop - Property (ex: 'P279')
+ * @param {String} qid - QID of root (ex: 'Q2095')
+ */
+function getSlices(prop, qid) {
+	var query = decodeURIComponent(opts.query);
+	query = query.replace(/\$root/g, qid.slice(1));
+	query = query.replace(/\$property/g, prop.slice(1));
+	return WDQ(query);
 }
+
 function parseURL() {
 	var url = location.href;
 	var params = url.match(/\?.*/);
@@ -130,7 +142,7 @@ var sm;
 
 function go(rootId, prop) {
 // get all items with property:rootId
-	hasClaim(opts.property, rootId)
+	getSlices(opts.property, rootId)
 		.done(function(data, textStatus, jqXHR) {
 			data = data.items;
 
@@ -203,7 +215,7 @@ function clickHandler(isChild, smi) {
 }
 
 function loadChildren(node, qid, prop){
-	hasClaim(prop, qid)
+	getSlices(prop, qid)
 	.done(function(data, textStatus, jqXHR) {
 			data = data.items;
 
