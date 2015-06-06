@@ -112,7 +112,7 @@ function getSlices(prop, qid) {
 	return WDQ(query);
 }
 
-function parseURL() {
+function parseURLParams() {
 	var url = location.href;
 	var params = url.match(/\?.*/);
 	if(!params) return;
@@ -256,7 +256,7 @@ function loadChildren(node, qid, prop){
 	});
 }
 
-parseURL();
+parseURLParams();
 opts.pageSize = 49;
 go(opts.root, opts.property);
 

@@ -343,6 +343,7 @@ SpiralMenu.prototype.resetTitle = function() {
 /**
  * Creates the spiral menu's root element. Private, must be used after draw()
  * 
+ * @private
  * @return {Element} the root's group
  */
 SpiralMenu.prototype.drawRoot = function() {
@@ -593,14 +594,13 @@ SpiralMenu.prototype.drawSlice = function(smi, index) {
 		}
 	});
 
-
 	// attach where necessary
 	this.svg.spiral.add(group);
-	this.slices[index] = {
+	this.slices[index] = new Slice({
 		shape: slice,
 		group: group,
 		smi: smi
-	};
+	});
 
 	return smi.element;
 };
@@ -618,10 +618,9 @@ SpiralMenu.prototype.promoteChild = function(newRoot) {
 	for(var i = 0; i < this.sliceCount; ++i) {
 		if(newRootId == this.slices[i].smi.getId()) {
 			sliceId = i;
-			continue; // will animate
+			continue; // will animate this slice
 		}
-		this.slices[i].group.remove();
-		this.slices[i].shape.remove();
+		this.slices[i].destroy();
 	}
 
 
@@ -634,8 +633,7 @@ SpiralMenu.prototype.promoteChild = function(newRoot) {
 	this.slices[sliceId].shape.animate({
 		d: sm.innerCirclePath()
 	}, this.animationLength, mina.linear, function() {
-		sm.slices[sliceId].shape.remove();
-		sm.slices[sliceId].group.remove();
+		sm.slices[sliceId].destroy();
 
 		// redraw
 		sm.startIndex = 0;
@@ -651,8 +649,7 @@ SpiralMenu.prototype.demoteRoot = function() {
 
 	// remove all children
 	for(var i = 0; i < this.sliceCount; ++i) {
-		this.slices[i].shape.remove();
-		this.slices[i].group.remove();
+		this.slices[i].destroy();
 	}
 
 	// update root
@@ -747,26 +744,21 @@ SpiralMenu.prototype.next = function() {
 	slice.shape.animate({
 		d: sm.createEmptySlicePath(0, 'start')
 	}, this.animationLength, function() {
-		slice.group.remove();
-		if (slice.shape.parent().type == 'clipPath') {
-			slice.shape.parent().remove();
-		} else {
-			slice.shape.remove();
-		}
+		slice.destroy();
 	});
-	this.slices.shift();
+	this.slices.shift(); // remove first element, shifting down
 
 	// create new slice for next item
-	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], this.sliceCount-1);
+	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], this.sliceCount - 1);
 	var newSlice = this.slices[this.sliceCount - 1];
 	newSlice.shape.attr({
-		d: sm.createEmptySlicePath(this.sliceCount-1, 'end')
+		d: sm.createEmptySlicePath(this.sliceCount - 1, 'end')
 	});
 	newSlice.group.attr({
 		opacity: 0
 	});
 	newSlice.shape.animate({
-		d: sm.createSlicePath(this.sliceCount-1)
+		d: sm.createSlicePath(this.sliceCount - 1)
 	}, this.animationLength);
 	newSlice.group.animate({
 		opacity: 1
@@ -803,15 +795,10 @@ SpiralMenu.prototype.previous = function() {
 	slice.shape.animate({
 		d: sm.createEmptySlicePath(this.sliceCount - 1, 'end')
 	}, this.animationLength, function() {
-		slice.group.remove();
-		if (slice.shape.parent().type == 'clipPath') {
-			slice.shape.parent().remove();
-		} else {
-			slice.shape.remove();
-		}
+		slice.destroy();
 	});
-	this.slices.unshift({});
-	this.slices.pop();
+	this.slices.unshift({}); // push {} from left
+	this.slices.pop(); // remove last element
 
 	// create new slice for next item
 	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], 0);
@@ -847,6 +834,8 @@ SpiralMenu.prototype.previous = function() {
  * @param {Number} ms - length of scroll interval. 
  */
 SpiralMenu.prototype.startAutoScroll = function(ms) {
+	if (sm.autoScrollInterval) return; // don't start if already started
+
 	var sm = this;
 	this.autoScrollInterval = setInterval(function() {
 		if(!sm.next()) {
@@ -863,4 +852,54 @@ SpiralMenu.prototype.stopAutoScroll = function() {
 	if(!this.autoScrollInterval) return;
 	clearInterval(this.autoScrollInterval);
 	this.autoScrollInterval = 0;
+}
+
+/**
+ * Remove a slice from the view
+ *
+ * @private
+ * @param {Number} index - the slice's index
+ */
+SpiralMenu.prototype.removeSlice = function(index) {
+	var slice = this.slices[index];
+
+	if (slice.shape.parent().type == 'clipPath') {
+		slice.shape.parent().remove();
+	} else {
+		slice.shape.remove();
+	}
+	this.slices[index].group.remove();
+	//this.slices[index] = undefined;
+}
+
+/**
+ * Stores relevant data for a slice
+ * 
+ * @constructor
+ * @param {Object} setup
+ * @param {SpiralMenuItem} setup.smi - the item represented
+ * @param {Element} setup.shape - the element which controls the slices shape
+ * @param {Element} setup.group - the group containing all the slice's components
+ */
+function Slice(setup) {
+	this.smi = setup.smi;
+	this.shape = setup.shape;
+	this.group = setup.group;
+}
+
+/**
+ * Destroys a slice
+ */
+Slice.prototype.destroy = function() {
+	if (this.shape.parent().type == 'clipPath') {
+		this.shape.parent().remove();
+	} else {
+		this.shape.remove();
+	}
+
+	this.group.remove();
+
+	delete this.smi;
+	delete this.group;
+	delete this.shape;
 }
