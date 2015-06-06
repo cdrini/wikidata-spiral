@@ -106,6 +106,7 @@ function circlePath(cx, cy, r) {
 function SpiralMenuItem(setup) {
 	setParam(this, setup, 'backgroundImage' , ""           );
 	setParam(this, setup, 'icon'            , ""           );
+	setParam(this, setup, 'textIcon'        , ""           );
 	setParam(this, setup, 'title'           , ""           );
 	setParam(this, setup, 'description'     , ""           );
 	setParam(this, setup, 'href'            , ""           );
@@ -206,8 +207,7 @@ SpiralMenu.prototype.draw = function() {
 			height: '100%'
 		});*/
 
-		this.svg.spiral = this.svg.group()
-		                      .addClass('spiral');
+		this.svg.spiral = this.svg.group().addClass('spiral');
 	}
 
 	// draw slices
@@ -517,6 +517,7 @@ SpiralMenu.prototype.next = function() {
 		this.slices[i].shape.animate({
 			d: sm.createSlicePath(i)
 		}, this.animationLength);
+		this.slices[i].index = i;
 		this.slices[i].update();
 	}
 	this.startIndex++;
@@ -568,7 +569,9 @@ SpiralMenu.prototype.previous = function() {
 		this.slices[i].shape.animate({
 			d: sm.createSlicePath(i)
 		}, this.animationLength);
+		this.slices[i].index = i;
 		this.slices[i].update();
+
 	}
 	this.startIndex--;
 
@@ -643,77 +646,6 @@ SpiralMenuItemView.prototype.destroy = function() {
 };
 
 /**
- * Updates the image, shape, etc. of a slice
- */
-SpiralMenuItemView.prototype.update = function() {
-	var s = this.sm.svg;
-	var smi = this.smi;
-
-	// Update backgroundImage
-	if(smi.backgroundImage) {
-		// If we already had an image
-		var img = this.group.select('image');
-		if(img) {
-			var clipPathId = img.attr('clip-path').match(/#[^\)]*/);
-			if(!clipPathId) {
-				console.log(img);
-				console.log(img.attr('clip-path'));
-			}
-			clipPathId = clipPathId[0];
-			var clipPath = Snap(clipPathId + ' > path');
-			var bbox = clipPath.getBBox();
-
-			
-			var anim = clipPath.inAnim();
-
-			if (anim.length) {
-				anim = anim[anim.length-1];
-
-				// create temporary at end of anim, to get bbox
-				var clone = clipPath.clone();
-				clone.attr(anim.anim.attr);
-				bbox = clone.getBBox();
-				clone.remove();
-				img.attr({
-					'xlink:href': smi.backgroundImage
-				});				
-				img.animate({
-					x: Math.round(bbox.x),
-					y: Math.round(bbox.y),
-					width: Math.round(bbox.w),
-					height: Math.round(bbox.h)
-				}, sm.animationLength);
-				img.inAnim()[0].status(anim.status());
-			}
-			
-			img.attr({
-				'xlink:href': smi.backgroundImage,
-				x: Math.round(bbox.x),
-				y: Math.round(bbox.y),
-				width: Math.round(bbox.w),
-				height: Math.round(bbox.h)
-			});
-			return;
-		}
-
-		// If we must now add an image
-		var clipShape = this.group.select('.main-shape');
-		var bbox = clipShape.getBBox();
-
-		var img = s.image(smi.backgroundImage,
-			Math.round(bbox.x),
-			Math.round(bbox.y),
-			Math.round(bbox.w),
-			Math.round(bbox.h));
-		img.attr({
-			preserveAspectRatio: 'xMidYMid slice',
-			clip: clipShape
-		});
-		this.group.add(img);
-	}
-};
-
-/**
  * Creates the slice
  * @private
  */
@@ -755,6 +687,23 @@ SpiralMenuItemView.prototype.drawSlice = function() {
 		shape.addClass('main-shape');
 	}
 
+	if(smi.textIcon || !smi.backgroundImage) {
+		smi.textIconText = smi.textIcon || smi.title[0];
+		// find center of slice
+		var centerAngle = 2*Math.PI*(this.index/sm.sliceCount + 0.5/sm.sliceCount);
+		var centerRadius = (sm.outerRadius + sm.innerRadius)/2
+		var cx = centerRadius*Math.cos(centerAngle);
+		var cy = centerRadius*Math.sin(centerAngle);
+
+		var text = s.text(sm.center.x + cx, sm.center.y + cy, [smi.textIconText]);
+		text.select('tspan').attr({
+			textAnchor: 'middle',
+			alignmentBaseline: 'middle'
+		});
+		text.addClass('text-icon');
+		group.add(text);
+	}
+
 	// dbl click handlers
 	group.dblclick(function() {
 		open(smi.href);
@@ -782,9 +731,8 @@ SpiralMenuItemView.prototype.drawSlice = function() {
 		}
 	});
 
-	sm.svg.spiral.add(group);
 	sm.slices[index] = this;
-
+	sm.svg.spiral.add(group);
 	this.group = group;
 	this.shape = shape;
 };
@@ -866,6 +814,104 @@ SpiralMenuItemView.prototype.drawRoot = function() {
 		}
 	}, 1, 300));
 
+	sm.svg.spiral.add(group);
 	this.shape = shape;
 	this.group = group;
+};
+
+/**
+ * Updates the image, shape, etc. of a slice
+ */
+SpiralMenuItemView.prototype.update = function() {
+	var s = this.sm.svg;
+	var smi = this.smi;
+
+	// Update backgroundImage
+	if(smi.backgroundImage) {
+		// If we already had an image
+		var img = this.group.select('image');
+		if(img) {
+			var clipPathId = img.attr('clip-path').match(/#[^\)]*/);
+			if(!clipPathId) {
+				console.log(img);
+				console.log(img.attr('clip-path'));
+			}
+			clipPathId = clipPathId[0];
+			var clipPath = Snap(clipPathId + ' > path');
+			var bbox = clipPath.getBBox();
+
+			
+			var anim = clipPath.inAnim();
+
+			if (anim.length) {
+				anim = anim[anim.length-1];
+
+				// create temporary at end of anim, to get bbox
+				var clone = clipPath.clone();
+				clone.attr(anim.anim.attr);
+				bbox = clone.getBBox();
+				clone.remove();
+				img.attr({
+					'xlink:href': smi.backgroundImage
+				});				
+				img.animate({
+					x: Math.round(bbox.x),
+					y: Math.round(bbox.y),
+					width: Math.round(bbox.w),
+					height: Math.round(bbox.h)
+				}, sm.animationLength);
+				img.inAnim()[0].status(anim.status());
+			}
+			
+			img.attr({
+				'xlink:href': smi.backgroundImage,
+				x: Math.round(bbox.x),
+				y: Math.round(bbox.y),
+				width: Math.round(bbox.w),
+				height: Math.round(bbox.h)
+			});
+		}
+
+		// If we must now add an image
+		else {
+			var clipShape = this.group.select('.main-shape');
+			var bbox = clipShape.getBBox();
+
+			var img = s.image(smi.backgroundImage,
+				Math.round(bbox.x),
+				Math.round(bbox.y),
+				Math.round(bbox.w),
+				Math.round(bbox.h));
+			img.attr({
+				preserveAspectRatio: 'xMidYMid slice',
+				clip: clipShape
+			});
+			this.group.add(img);
+		}
+	}
+
+	// remove textIcon if using default icon
+	if (smi.backgroundImage && smi.textIconText && !smi.textIcon) {
+		this.group.select('.text-icon').remove();
+		delete smi.textIconText;
+	}
+
+	// Update textIcon location
+	if(smi.textIcon || !smi.backgroundImage) {
+		// find center of slice
+		var centerAngle = 2*Math.PI*(this.index/sm.sliceCount + 0.5/sm.sliceCount);
+		var centerRadius = (sm.outerRadius + sm.innerRadius)/2
+		var cx = centerRadius*Math.cos(centerAngle);
+		var cy = centerRadius*Math.sin(centerAngle);
+
+		var text = this.group.select('.text-icon').animate({
+			x: sm.center.x + cx,
+			y: sm.center.y + cy
+		}, sm.animationLength);
+
+		// ensure ontop of backgroundImage
+		if(smi.backgroundImage) {
+			text.insertAfter(this.group.select('image'));
+		}
+	}
 };

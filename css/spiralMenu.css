@@ -39,3 +39,12 @@ svg {
   text-align: center;
   text-anchor: middle;
 }
+
+.text-icon {
+  font-family: Roboto Thin, sans-serif;
+  font-size: 3em;
+  /* font-weight: 100; */
+  /* text-shadow: 0 0 4px rgba(0,0,0,0.7); */
+  fill: white;
+  -webkit-font-smoothing: antialiased;
+}
