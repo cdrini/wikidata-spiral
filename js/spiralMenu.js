@@ -27,9 +27,9 @@ function ignoreSpam(fn, wait) {
  * Calls fn on every count-th call of fn, so long as each call is within lag 
  * ms of the last.
  * 
- * @example el.click(fixedCall(fn, 1, 300)); // fn is called only if there
- *                                           // a click occurs >300ms after
- *                                           // the last click
+ * @example el.click(fixedCall(fn, 1, 300)); // fn is called only if a click
+ * 	                                         // is followed by no other clicks
+ *                                           // in the following 300ms
  * @param {Function} fn - the function to call
  * @param {Number} count - the number of times the function must be called
  *                         in order to actually take effect
@@ -73,12 +73,26 @@ function assertType(obj, class_name) {
 		throw("TYPE ERROR in " + this);
 	}
 }
-function randColor() {
+/**
+ * Returns a random color in hsl format. Avoids similar consecutive random
+ * colors.
+ * 
+ * @return {String} a color in hsl format
+ */
+function randColor() {	
 	var hue = Math.round(Math.random()*360);
+	// avoid returning similar hues right next to each other
+	while(Math.abs(randColor.lastHue - hue) < 20) {
+		hue = Math.round(Math.random()*360);
+	}
+	randColor.lastHue = hue;
+
 	var sat = "66%";
 	var lightness = "58%";
 	return 'hsl(' + hue + ',' + sat + ',' + lightness + ')';
 }
+randColor.lastHue = 0;
+
 function circlePath(cx, cy, r) {
 	// TODO: add nodes param
 	// TODO: add param to specify break in circle
