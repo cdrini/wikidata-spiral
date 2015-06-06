@@ -130,8 +130,8 @@ SpiralMenuItem.prototype.getId = function() {
 
 SpiralMenuItem.prototype.setBackgroundImage = function(url) {
 	this.backgroundImage = url;
-	if(this.element) {
-		this.element.spiralMenu.updateSlice(this);
+	if(this.view) {
+		this.view.update();
 	}
 }
 /*
@@ -145,21 +145,6 @@ SpiralMenuItem.prototype.addChild = function(smi) {
 
 SpiralMenuItem.prototype.isLeaf = function() {
 	return this.children.length === 0;
-};
-
-SpiralMenuItem.prototype.draw = function() {
-	this.element = document.createElement('li');
-	this.element.innerHTML = this.title;
-
-	if(!this.isLeaf()) {
-		var ul = document.createElement('ul');
-		for (var i = 0; i < this.children.length; ++i){
-			ul.appendChild(this.children[i].draw());
-		}
-		this.element.appendChild(ul);
-	}
-
-	return this.element;
 };
 
 /**
@@ -228,11 +213,11 @@ SpiralMenu.prototype.draw = function() {
 	// draw slices
 	this.slices = [];
 	for(var i = 0; i < this.sliceCount; ++i) {
-		this.drawSlice(this.currentRoot.children[i], i);
+		new SpiralMenuItemView(this, this.currentRoot.children[i], i);
 	}
 
 	// draw root
-	this.svg.spiral.add(this.drawRoot());
+	new SpiralMenuItemView(this, this.currentRoot);
 
 	// draw title
 	this.drawTitle();
@@ -340,88 +325,6 @@ SpiralMenu.prototype.updateTitle = function(text) {
 SpiralMenu.prototype.resetTitle = function() {
 	return this.svg.title.textPath.node.innerHTML = this.currentRoot.title;
 }
-/**
- * Creates the spiral menu's root element. Private, must be used after draw()
- * 
- * @private
- * @return {Element} the root's group
- */
-SpiralMenu.prototype.drawRoot = function() {
-	var sm = this;
-	var s = this.svg;
-	var root = this.currentRoot;
-	
-	root.element = s.group();
-	root.element.spiralMenu = sm;
-	root.element.attr({
-		class: 'root',
-		title: root.title,
-	});
-	var group = root.element;
-	group.node.style.transformOrigin = this.center.x + 'px ' + this.center.y + 'px';
-
-	// create SVG circle
-	var circle = this.drawInnerCircle(false);
-	circle.attr({
-		style: "fill: " + randColor()
-	});
-	group.add(circle);
-
-	// create background image
-	if (root.backgroundImage) {
-		// create circle for clipping
-		var topLeft = {
-			x: this.center.x - this.innerRadius,
-			y: this.center.y - this.innerRadius
-		};
-		var img = s.image(root.backgroundImage, topLeft.x, topLeft.y, this.innerRadius*2, this.innerRadius*2);
-		img.attr({
-			preserveAspectRatio: 'xMidYMid slice',
-			clip: circle
-		});
-		group.add(img);
-
-		if (this.animate) {
-			//circle.animate({r: this.innerRadius}, 1000);
-			Snap.animate(0, 1, function(factor){
-				img.attr({
-					width: factor*sm.innerRadius*2,
-					height: factor*sm.innerRadius*2
-				});
-			}, this.animationLength);
-		}
-	} else {
-		circle.addClass('main-shape');
-	}
-
-	if (this.animate) {
-		//circle.animate({r: this.innerRadius}, 1000);
-		Snap.animate(0, 1, function(factor){
-			circle.attr({
-				r: factor*sm.innerRadius
-			});
-		}, this.animationLength);
-	}
-	// create circle for text wrap
-	// create text
-
-	// dbl click handlers
-	group.dblclick(function() {
-		open(root.href);
-	});
-
-	// click handlers
-	group.click(fixedCall(function() {
-		sm.currentRoot.click();
-		sm.clickHandler(false, sm.currentRoot);
-
-		if (sm.currentRoot.parent) {
-			sm.demoteRoot();
-		}
-	}, 1, 300));
-
-	return root.element;
-};
 
 /**
  * Creates a spiral menu's slice path 'd' string
@@ -520,132 +423,45 @@ SpiralMenu.prototype.createEmptySlicePath = function(index, dir) {
 	return pathStr;
 }
 
-/**
- * Creates a spiral menu's slice element. Private, must be used after draw()
- * 
- * @param {SpiralMenuItem} smi - the item to create a slice for
- * @param {Number} index - the index on the circle
- * @return {Element} the slice's group
- */
-SpiralMenu.prototype.drawSlice = function(smi, index) {
-	var sm = this;
-	var slices = this.sliceCount;
-
-	var s = this.svg;
-	smi.element = s.group();
-	smi.element.spiralMenu = this;
-	smi.element.attr({
-		class: 'slice' + (smi.isLeaf()? ' leaf' : ''),
-		title: smi.title
-	});
-	var group = smi.element;
-
-	var pathStr = sm.createSlicePath(index);
-	var slice = s.path(pathStr);
-	slice.attr({
-		style: "fill:" + randColor()
-	});
-	group.add(slice);
-
-	// create background image
-	if (smi.backgroundImage) {
-		var bbox = slice.getBBox();
-		var topLeft = {
-			x: bbox.x,
-			y: bbox.y
-		}
-		var img = s.image(smi.backgroundImage, topLeft.x, topLeft.y, bbox.w, bbox.h);
-		img.attr({
-			preserveAspectRatio: 'xMidYMid slice',
-			clip: slice
-		});
-		group.add(img);
-	} else {
-		slice.addClass('main-shape');
-	}
-
-	// create slice for text wrap
-	// create text
-
-	// dbl click handlers
-	group.dblclick(function() {
-		open(smi.href);
-	});
-
-	// attach click handlers
-	// fixedCall avoids interferring with dblclick
-	group.click(fixedCall(function() {
-		smi.click();
-		sm.clickHandler(true, smi);
-
-		if (!smi.isLeaf()) {
-			sm.promoteChild(smi);
-		}
-	}, 1, 300));
-
-	// attach hover handlers
-	group.hover(function() {
-		sm.updateTitle(smi.title);
-		sm.stopAutoScroll();
-	}, function() {
-		sm.updateTitle(sm.currentRoot.title);
-		if(sm.autoScroll) {
-			sm.startAutoScroll();
-		}
-	});
-
-	// attach where necessary
-	this.svg.spiral.add(group);
-	this.slices[index] = new Slice({
-		shape: slice,
-		group: group,
-		smi: smi
-	});
-
-	return smi.element;
-};
-
 SpiralMenu.prototype.promoteChild = function(newRoot) {
 	var sm = this;
 
 	// remove root
-	this.currentRoot.element.remove();
-	this.currentRoot.element = null;
+	this.currentRoot.view.destroy();
 
 	// remove all visible slices
 	var newRootId = newRoot.getId();
-	var sliceId = 0;
+	var newRootIndex = 0;
 	for(var i = 0; i < this.sliceCount; ++i) {
 		if(newRootId == this.slices[i].smi.getId()) {
-			sliceId = i;
+			newRootIndex = i;
 			continue; // will animate this slice
 		}
 		this.slices[i].destroy();
 	}
 
-
-	// update root, creating way to go back if necessary
+	// update root, creating way to go back
 	newRoot.parent = this.currentRoot;
 	this.currentRoot = newRoot;
 	this.sliceCount = Math.min(this.maxSlices, newRoot.children.length);
 
 	// animate slice to root
-	this.slices[sliceId].shape.animate({
+	var newRootSlice = this.slices[newRootIndex];
+	newRootSlice.shape.animate({
 		d: sm.innerCirclePath()
 	}, this.animationLength, mina.linear, function() {
-		sm.slices[sliceId].destroy();
+		newRootSlice.destroy();
 
 		// redraw
 		sm.startIndex = 0;
 		sm.draw();
 	});
-	sm.updateSlice(newRoot);
+	newRootSlice.update();
 }
 
 SpiralMenu.prototype.demoteRoot = function() {
 	// remove root
-	this.currentRoot.element.remove();
-	this.currentRoot.element = null;
+	this.currentRoot.view.destroy();
 
 	// remove all children
 	for(var i = 0; i < this.sliceCount; ++i) {
@@ -656,74 +472,7 @@ SpiralMenu.prototype.demoteRoot = function() {
 	this.currentRoot = this.currentRoot.parent;
 
 	this.draw();
-}
-
-SpiralMenu.prototype.updateSlice = function(smi) {
-	var s = this.svg;
-
-	// Update backgroundImage
-	if(smi.backgroundImage) {
-		// If we already had an image
-		var img = smi.element.select('image');
-		if(img) {
-			var clipPathId = img.attr('clip-path').match(/#[^\)]*/);
-			if(!clipPathId) {
-				console.log(img);
-				console.log(img.attr('clip-path'));
-			}
-			clipPathId = clipPathId[0];
-			var clipPath = Snap(clipPathId + ' > path');
-			var bbox = clipPath.getBBox();
-
-			
-			var anim = clipPath.inAnim();
-
-			if (anim.length) {
-				anim = anim[anim.length-1];
-
-				// create temporary at end of anim, to get bbox
-				var clone = clipPath.clone();
-				clone.attr(anim.anim.attr);
-				bbox = clone.getBBox();
-				clone.remove();
-				img.attr({
-					'xlink:href': smi.backgroundImage
-				});				
-				img.animate({
-					x: Math.round(bbox.x),
-					y: Math.round(bbox.y),
-					width: Math.round(bbox.w),
-					height: Math.round(bbox.h)
-				}, this.animationLength);
-				img.inAnim()[0].status(anim.status());
-			}
-			
-			img.attr({
-				'xlink:href': smi.backgroundImage,
-				x: Math.round(bbox.x),
-				y: Math.round(bbox.y),
-				width: Math.round(bbox.w),
-				height: Math.round(bbox.h)
-			});
-			return;
-		}
-
-		// If we must now add an image
-		var clipShape = smi.element.select('.main-shape');
-		var bbox = clipShape.getBBox();
-
-		var img = s.image(smi.backgroundImage,
-			Math.round(bbox.x),
-			Math.round(bbox.y),
-			Math.round(bbox.w),
-			Math.round(bbox.h));
-		img.attr({
-			preserveAspectRatio: 'xMidYMid slice',
-			clip: clipShape
-		});
-		smi.element.add(img);
-	}
-}
+};
 
 /**
  * Scrolls next child item into view
@@ -749,8 +498,7 @@ SpiralMenu.prototype.next = function() {
 	this.slices.shift(); // remove first element, shifting down
 
 	// create new slice for next item
-	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], this.sliceCount - 1);
-	var newSlice = this.slices[this.sliceCount - 1];
+	var newSlice = new SpiralMenuItemView(sm, this.currentRoot.children[newI], this.sliceCount - 1);
 	newSlice.shape.attr({
 		d: sm.createEmptySlicePath(this.sliceCount - 1, 'end')
 	});
@@ -769,11 +517,11 @@ SpiralMenu.prototype.next = function() {
 		this.slices[i].shape.animate({
 			d: sm.createSlicePath(i)
 		}, this.animationLength);
-		sm.updateSlice(sm.slices[i].smi);
+		this.slices[i].update();
 	}
 	this.startIndex++;
 
-	return newSliceGroup;
+	return newSlice.group;
 }
 
 /**
@@ -801,8 +549,7 @@ SpiralMenu.prototype.previous = function() {
 	this.slices.pop(); // remove last element
 
 	// create new slice for next item
-	var newSliceGroup = this.drawSlice(this.currentRoot.children[newI], 0);
-	var newSlice = this.slices[0];
+	var newSlice = new SpiralMenuItemView(sm, this.currentRoot.children[newI], 0);
 	newSlice.shape.attr({
 		d: sm.createEmptySlicePath(0, 'start')
 	});
@@ -821,11 +568,11 @@ SpiralMenu.prototype.previous = function() {
 		this.slices[i].shape.animate({
 			d: sm.createSlicePath(i)
 		}, this.animationLength);
-		sm.updateSlice(sm.slices[i].smi);
+		this.slices[i].update();
 	}
 	this.startIndex--;
 
-	return newSliceGroup;
+	return newSlice.group;
 };
 
 /**
@@ -855,42 +602,32 @@ SpiralMenu.prototype.stopAutoScroll = function() {
 }
 
 /**
- * Remove a slice from the view
- *
- * @private
- * @param {Number} index - the slice's index
- */
-SpiralMenu.prototype.removeSlice = function(index) {
-	var slice = this.slices[index];
-
-	if (slice.shape.parent().type == 'clipPath') {
-		slice.shape.parent().remove();
-	} else {
-		slice.shape.remove();
-	}
-	this.slices[index].group.remove();
-	//this.slices[index] = undefined;
-}
-
-/**
- * Stores relevant data for a slice
+ * Stores relevant data for the view of SpiralMenuItem
  * 
  * @constructor
- * @param {Object} setup
- * @param {SpiralMenuItem} setup.smi - the item represented
- * @param {Element} setup.shape - the element which controls the slices shape
- * @param {Element} setup.group - the group containing all the slice's components
+ * @param {SpiralMenu}     sm:    the spiral menu
+ * @param {SpiralMenuItem} smi:   the item represented
+ * @param {Number}         index: the item's index (if a slice). If undefined,
+ *                                it is a root
  */
-function Slice(setup) {
-	this.smi = setup.smi;
-	this.shape = setup.shape;
-	this.group = setup.group;
-}
+function SpiralMenuItemView(sm, smi, index) {
+	this.sm = sm;
+	this.smi = smi;
+	this.index = index;
+
+	smi.view = this;
+
+	if (typeof(index) == 'undefined' || index < 0) {
+		this.drawRoot();
+	} else {
+		this.drawSlice();
+	}
+};
 
 /**
  * Destroys a slice
  */
-Slice.prototype.destroy = function() {
+SpiralMenuItemView.prototype.destroy = function() {
 	if (this.shape.parent().type == 'clipPath') {
 		this.shape.parent().remove();
 	} else {
@@ -899,7 +636,236 @@ Slice.prototype.destroy = function() {
 
 	this.group.remove();
 
+	delete this.smi.view;
 	delete this.smi;
 	delete this.group;
 	delete this.shape;
-}
+};
+
+/**
+ * Updates the image, shape, etc. of a slice
+ */
+SpiralMenuItemView.prototype.update = function() {
+	var s = this.sm.svg;
+	var smi = this.smi;
+
+	// Update backgroundImage
+	if(smi.backgroundImage) {
+		// If we already had an image
+		var img = this.group.select('image');
+		if(img) {
+			var clipPathId = img.attr('clip-path').match(/#[^\)]*/);
+			if(!clipPathId) {
+				console.log(img);
+				console.log(img.attr('clip-path'));
+			}
+			clipPathId = clipPathId[0];
+			var clipPath = Snap(clipPathId + ' > path');
+			var bbox = clipPath.getBBox();
+
+			
+			var anim = clipPath.inAnim();
+
+			if (anim.length) {
+				anim = anim[anim.length-1];
+
+				// create temporary at end of anim, to get bbox
+				var clone = clipPath.clone();
+				clone.attr(anim.anim.attr);
+				bbox = clone.getBBox();
+				clone.remove();
+				img.attr({
+					'xlink:href': smi.backgroundImage
+				});				
+				img.animate({
+					x: Math.round(bbox.x),
+					y: Math.round(bbox.y),
+					width: Math.round(bbox.w),
+					height: Math.round(bbox.h)
+				}, sm.animationLength);
+				img.inAnim()[0].status(anim.status());
+			}
+			
+			img.attr({
+				'xlink:href': smi.backgroundImage,
+				x: Math.round(bbox.x),
+				y: Math.round(bbox.y),
+				width: Math.round(bbox.w),
+				height: Math.round(bbox.h)
+			});
+			return;
+		}
+
+		// If we must now add an image
+		var clipShape = this.group.select('.main-shape');
+		var bbox = clipShape.getBBox();
+
+		var img = s.image(smi.backgroundImage,
+			Math.round(bbox.x),
+			Math.round(bbox.y),
+			Math.round(bbox.w),
+			Math.round(bbox.h));
+		img.attr({
+			preserveAspectRatio: 'xMidYMid slice',
+			clip: clipShape
+		});
+		this.group.add(img);
+	}
+};
+
+/**
+ * Creates the slice
+ * @private
+ */
+SpiralMenuItemView.prototype.drawSlice = function() {
+	var sm = this.sm;
+	var smi = this.smi;
+	var index = this.index;
+	var slices = sm.sliceCount;
+	var s = sm.svg;
+
+	// create group
+	var group = s.group();
+	group.attr({
+		class: 'slice' + (smi.isLeaf()? ' leaf' : ''),
+		title: smi.title
+	});
+	smi.view = this;
+
+	// create path
+	var pathStr = sm.createSlicePath(index);
+	var shape = s.path(pathStr);
+	shape.attr({
+		style: "fill:" + randColor()
+	});
+	group.add(shape);
+
+	// bounding box (for use later)
+	var bbox = shape.getBBox();
+
+	// create background image
+	if (smi.backgroundImage) {
+		var img = s.image(smi.backgroundImage, bbox.x, bbox.y, bbox.w, bbox.h);
+		img.attr({
+			preserveAspectRatio: 'xMidYMid slice',
+			clip: shape
+		});
+		group.add(img);
+	} else {
+		shape.addClass('main-shape');
+	}
+
+	// dbl click handlers
+	group.dblclick(function() {
+		open(smi.href);
+	});
+
+	// attach click handlers
+	// fixedCall avoids interferring with dblclick
+	group.click(fixedCall(function() {
+		smi.click();
+		sm.clickHandler(true, smi);
+
+		if (!smi.isLeaf()) {
+			sm.promoteChild(smi);
+		}
+	}, 1, 300));
+
+	// attach hover handlers
+	group.hover(function() {
+		sm.updateTitle(smi.title);
+		sm.stopAutoScroll();
+	}, function() {
+		sm.updateTitle(sm.currentRoot.title);
+		if(sm.autoScroll) {
+			sm.startAutoScroll();
+		}
+	});
+
+	sm.svg.spiral.add(group);
+	sm.slices[index] = this;
+
+	this.group = group;
+	this.shape = shape;
+};
+
+/**
+ * Creates a spiral menu's root element.
+ * @private
+ */
+SpiralMenuItemView.prototype.drawRoot = function() {
+	var sm = this.sm;
+	var smi = this.smi;
+	var s = sm.svg;
+	
+	// create group
+	var group = s.group();
+	group.attr({
+		class: 'root',
+		title: smi.title,
+	});
+	group.node.style.transformOrigin = sm.center.x + 'px ' + sm.center.y + 'px';
+
+	// create SVG circle
+	var shape = sm.drawInnerCircle(false);
+	shape.attr({
+		style: "fill: " + randColor()
+	});
+	group.add(shape);
+
+	// create background image
+	if (smi.backgroundImage) {
+		// create circle for clipping
+		var topLeft = {
+			x: sm.center.x - sm.innerRadius,
+			y: sm.center.y - sm.innerRadius
+		};
+		var img = s.image(smi.backgroundImage, topLeft.x, topLeft.y, sm.innerRadius*2, sm.innerRadius*2);
+		img.attr({
+			preserveAspectRatio: 'xMidYMid slice',
+			clip: shape
+		});
+		group.add(img);
+
+		if (sm.animate) {
+			//circle.animate({r: sm.innerRadius}, 1000);
+			Snap.animate(0, 1, function(factor){
+				img.attr({
+					width: factor*sm.innerRadius*2,
+					height: factor*sm.innerRadius*2
+				});
+			}, sm.animationLength);
+		}
+	} else {
+		shape.addClass('main-shape');
+	}
+
+	if (sm.animate) {
+		//shape.animate({r: sm.innerRadius}, 1000);
+		Snap.animate(0, 1, function(factor){
+			shape.attr({
+				r: factor*sm.innerRadius
+			});
+		}, sm.animationLength);
+	}
+	// create circle for text wrap
+	// create text
+
+	// dbl click handlers
+	group.dblclick(function() {
+		open(smi.href);
+	});
+
+	// click handlers
+	group.click(fixedCall(function() {
+		sm.currentRoot.click();
+		sm.clickHandler(false, sm.currentRoot);
+
+		if (sm.currentRoot.parent) {
+			sm.demoteRoot();
+		}
+	}, 1, 300));
+
+	this.shape = shape;
+	this.group = group;
+};
