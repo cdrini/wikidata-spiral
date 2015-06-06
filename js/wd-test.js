@@ -140,23 +140,26 @@ function parseURLParams() {
 var rootNode;
 var sm;
 
+// the initializing function which loads the root and its children
 function go(rootId, prop) {
-// get all items with property:rootId
 	getSlices(opts.property, rootId)
 		.done(function(data, textStatus, jqXHR) {
 			data = data.items;
 
 			if(!data.length) return;
+			var unloadedChildren = [];
 			if(data.length > opts.pageSize) {
 				console.warn("Too many slices (" + data.length + ")! Showing only top " +  opts.pageSize + ".");
-				data = data.slice(0, opts.pageSize);
+				
+				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
+				unloadedChildren = data.splice(opts.pageSize);
 			}
 
 			var ids = 'Q' + data.join('|Q');
-
 			getFromQId(rootId + '|' + ids)
 				.done(function(data, textStatus, jqXHR){
 					var rootEntity = new WD.Entity(data.entities[rootId]);
+					
 					// Create new SMI for root
 					rootNode = new SpiralMenuItem({
 						title: rootEntity.getLabel(opts.langs),
@@ -165,8 +168,9 @@ function go(rootId, prop) {
 					findImage(rootEntity, rootNode);
 
 					rootNode.entity = rootEntity;
+					rootNode.unloadedChildren = unloadedChildren; // for 'load more' option
 
-					// deal with children
+					// load children and add to rootNode
 					for(var qid in data.entities) {
 						if (qid == rootId) continue;
 
@@ -178,6 +182,16 @@ function go(rootId, prop) {
 						child.entity = childEntity;
 						findImage(childEntity, child);
 						rootNode.addChild(child);
+					}
+
+					// if there are unloaded children, add node at end to load more
+					if(unloadedChildren.length) {
+						var loadMoreChild = new SpiralMenuItem({
+							title: 'load more',
+							textIcon: '+',
+							onClick: loadMoreChildren
+						});
+						rootNode.addChild(loadMoreChild);
 					}
 
 					// draw!
@@ -200,20 +214,31 @@ function go(rootId, prop) {
 
 
 function clickHandler(isChild, smi) {
+	if(!smi.entity) {
+		// clicked on a non-wd-item slice
+		return;
+	}
+
 	if(!isChild && !smi.parent) {
+		// should try to find a parent, displaying options if multiple options
+		// exist
 		console.log("TODO");
 		return;
 	}
 
 	if(smi.isLeaf()) {
-		// must load stuff
-		Snap('svg').attr({
-			'pointerEvents': 'none'
-		}); // avoid double clicking
+		// must load children
+		// TODO: add loading class to slice only
+		Snap('svg').addClass('loading')
+		.attr({
+			'pointerEvents': 'none' // avoid clicking while we're loading content
+		});
+
 		loadChildren(smi, smi.entity.entity.id, opts.property);
 	}
 }
 
+// loads on the children
 function loadChildren(node, qid, prop){
 	getSlices(prop, qid)
 	.done(function(data, textStatus, jqXHR) {
@@ -255,6 +280,40 @@ function loadChildren(node, qid, prop){
 			});
 	});
 }
+
+// SpiralMenuItem click handler
+// loads another page of data
+function loadMoreChildren(smi) {
+	console.log("TODO: Load more children");
+	return;
+	var root = sm.currentRoot;
+
+	root.removeChild(smi);
+
+	var ids = smi.unloadedChildren;
+	ids = smi.unloadedChildren.splice(opts.pageSize);
+	ids = 'Q' + ids.joing('|Q');
+
+	getFromQId(ids)
+	.done(function(data, textStatus, jqXHR){
+		// create smi's for children
+		for(var qid in data.entities) {
+			var childEntity = new WD.Entity(data.entities[qid]);
+			var child = new SpiralMenuItem({
+				title: childEntity.getLabel(opts.langs),
+				href: childEntity.getUrl()
+			});
+			child.entity = childEntity;
+			findImage(childEntity, child);
+
+			root.addChild(child);
+			if(smi.unloadedChildren.length) {
+				root.addChild(smi); // add load more button again
+			}
+		}
+	});
+}
+
 
 parseURLParams();
 opts.pageSize = 49;

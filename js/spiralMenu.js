@@ -117,7 +117,7 @@ function SpiralMenuItem(setup) {
 	this._id = SpiralMenuItem.newId();
 
 	this.click = function() {
-		this.onClick();
+		this.onClick(this);
 	}
 }
 SpiralMenuItem.count = 0;
@@ -146,6 +146,26 @@ SpiralMenuItem.prototype.addChild = function(smi) {
 
 SpiralMenuItem.prototype.isLeaf = function() {
 	return this.children.length === 0;
+};
+
+/**
+ * Finds and removes the provided child node
+ *
+ * @param {SpiralMenuItem} smi - the item to remove
+ * @return {SpiralMenuItem} the item removed
+ */
+SpiralMenuItem.prototype.removeChild = function(smi) {
+	var idToDel = smi.getId();
+	for(var i = 0; i < this.children.length; ++i) {
+		if(this.children[i].getId() == idToDel) {
+			// remove the element and fill the gap
+			this.children.splice(i, i);
+			return smi;
+		}
+	}
+
+	// couldn't find the element
+	throw("Cannot remove SMI; it is not a direct child.");
 };
 
 /**
