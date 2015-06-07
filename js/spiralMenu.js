@@ -135,12 +135,18 @@ SpiralMenuItem.prototype.setBackgroundImage = function(url) {
 		this.view.update();
 	}
 }
-/*
- * return: SpiralMenuItem
-*/
+
+/**
+ * Adds the provided smi to the end of this' children
+ *
+ * @param {SpiralMenuItem} smi - the item to add
+ * @return {SpiralMenuItem} this
+ */
 SpiralMenuItem.prototype.addChild = function(smi) {
 	assertType(smi, SpiralMenuItem);
 	this.children.push(smi);
+
+	this.emit('child added', [smi]);
 	return this;
 };
 
@@ -160,6 +166,7 @@ SpiralMenuItem.prototype.removeChild = function(smi) {
 		if(this.children[i].getId() == idToDel) {
 			// remove the element and fill the gap
 			this.children.splice(i, i);
+			this.emit('child removed', [smi]);
 			return smi;
 		}
 	}
@@ -167,6 +174,17 @@ SpiralMenuItem.prototype.removeChild = function(smi) {
 	// couldn't find the element
 	throw("Cannot remove SMI; it is not a direct child.");
 };
+
+/**
+ * Notifies the view of a change.
+ * FIXME: This seems like an ugly solution...
+ *
+ * @param {String} eventName
+ * @param {Array} args - supplementary args to be passedr
+ */
+SpiralMenuItem.prototype.emit = function(eventName, args) {
+	if(this.view) this.view.notify(eventName, args);
+}
 
 /**
  * A SpiralMenu
@@ -247,6 +265,23 @@ SpiralMenu.prototype.draw = function() {
 		this.startAutoScroll();
 	}
 	return this.svg;
+};
+
+/**
+ * Redraws the spiral.
+ * @private
+ */
+SpiralMenu.prototype.redraw = function() {
+	// remove root
+	this.currentRoot.view.destroy();
+
+	// remove all children
+	for(var i = 0; i < this.sliceCount; ++i) {
+		this.slices[i].destroy();
+	}
+
+	// draw
+	this.draw();
 };
 
 /**
@@ -933,5 +968,23 @@ SpiralMenuItemView.prototype.update = function() {
 		if(smi.backgroundImage) {
 			text.insertAfter(this.group.select('image'));
 		}
+	}
+};
+
+SpiralMenuItemView.prototype.notify = function(notification, args) {
+	var smi = this.smi;
+	var sm = this.sm;
+
+	switch(notification) {
+		case 'child added':
+			// if added child should not be in the view, do nothing
+			// it will only have to be in the view if we do not have enough items
+			if ( sm.sliceCount < sm.maxSlices ) {
+				sm.redraw();
+			}
+		break;
+		case 'child removed':
+		
+		break;
 	}
 };

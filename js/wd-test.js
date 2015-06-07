@@ -285,14 +285,13 @@ function loadChildren(node, qid, prop){
 // loads another page of data
 function loadMoreChildren(smi) {
 	console.log("TODO: Load more children");
-	return;
+	//return;
 	var root = sm.currentRoot;
 
-	root.removeChild(smi);
+	//root.removeChild(smi);
 
-	var ids = smi.unloadedChildren;
-	ids = smi.unloadedChildren.splice(opts.pageSize);
-	ids = 'Q' + ids.joing('|Q');
+	var ids = root.unloadedChildren.splice(0, opts.pageSize);
+	ids = 'Q' + ids.join('|Q');
 
 	getFromQId(ids)
 	.done(function(data, textStatus, jqXHR){
@@ -307,8 +306,8 @@ function loadMoreChildren(smi) {
 			findImage(childEntity, child);
 
 			root.addChild(child);
-			if(smi.unloadedChildren.length) {
-				root.addChild(smi); // add load more button again
+			if(root.unloadedChildren.length) {
+				//root.addChild(smi); // add load more button again
 			}
 		}
 	});
