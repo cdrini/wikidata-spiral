@@ -11,8 +11,6 @@ Originally created as a means to explore Wikidata's subclass hierarchy, Wikidata
 * Clicking one a slice will attempt to set the slice as the root, finding new slices which have ``CLAIM[$property:$newRoot]``. This is useful for properties such as P279 (subclass of), P171 (parent taxon), or P131 (located in the administrative territorial entity).
 * Double clicking on a slice will open its corresponding Wikidata page.
 
-Note that the app won't show more than 49 slices, or 1 Wikidata query (for now).
-
 ## Parameters
 (Accessible as URL parameters)
 
