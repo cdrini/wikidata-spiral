@@ -533,6 +533,7 @@ SpiralMenu.prototype.demoteRoot = function() {
 	// update root
 	this.currentRoot = this.currentRoot.parent;
 
+	this.startIndex = 0;
 	this.draw();
 };
 
