@@ -149,7 +149,7 @@ function go(rootId, prop) {
 			if(!data.length) return;
 			var unloadedChildren = [];
 			if(data.length > opts.pageSize) {
-				console.log("Showing first " +  opts.pageSize + "slices  of " + data.length + ".");
+				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
 				
 				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
 				unloadedChildren = data.splice(opts.pageSize);
@@ -251,10 +251,10 @@ function loadChildren(node, qid, prop){
 			}
 
 			if(data.length > opts.pageSize) {
-				console.log("Showing first " +  opts.pageSize + "slices  of " + data.length + ".");
+				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
 
 				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
-				node.unloadedChildren = unloadedChildren; // for 'load more' option
+				node.unloadedChildren = data.splice(opts.pageSize);
 			}
 
 			var ids = 'Q' + data.join('|Q');
@@ -317,8 +317,10 @@ function loadMoreChildren(smi) {
 
 			root.addChild(child);
 		}
+
+		// add load more button again
 		if(root.unloadedChildren.length) {
-			root.addChild(smi); // add load more button again
+			root.addChild(smi);
 		}
 	});
 }
