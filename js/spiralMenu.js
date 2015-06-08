@@ -1,10 +1,3 @@
-// Get Snap.svg
-if (!Snap) {
-	var script = document.createElement('script');
-	script.src = "https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.3.0/snap.svg-min.js";
-	document.head.appendChild(script);
-}
-
 /**
  * Calls fn only once, and ignore all future calls within ``wait`` ms of a
  * previous call.
