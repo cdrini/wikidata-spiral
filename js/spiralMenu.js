@@ -155,24 +155,39 @@ SpiralMenuItem.prototype.isLeaf = function() {
 };
 
 /**
+ * Finds the smi in the children, if present.
+ *
+ * @param {SpiralMenuItem} smi - the item to find
+ * @return {Number} the smi's index, or -1 if not found
+ */
+SpiralMenuItem.prototype.indexOf = function(smi) {
+	var id = smi.getId();
+	for(var i = 0; i < this.children.length; ++i) {
+		if(this.children[i].getId() == id) {
+			return i;
+		}
+	}
+
+	// couldn't find the element
+	return -1;
+};
+
+/**
  * Finds and removes the provided child node
  *
  * @param {SpiralMenuItem} smi - the item to remove
  * @return {SpiralMenuItem} the item removed
  */
 SpiralMenuItem.prototype.removeChild = function(smi) {
-	var idToDel = smi.getId();
-	for(var i = 0; i < this.children.length; ++i) {
-		if(this.children[i].getId() == idToDel) {
-			// remove the element and fill the gap
-			this.children.splice(i, i);
-			this.emit('child removed', [smi]);
-			return smi;
-		}
+	var index = this.indexOf(smi);
+	if(index !== -1) {
+		this.children.splice(index, index);
+		this.emit('child removed', [smi]);
+		return smi;
+	} else {
+		// couldn't find the element
+		throw("Cannot remove SMI; it is not a direct child.");
 	}
-
-	// couldn't find the element
-	throw("Cannot remove SMI; it is not a direct child.");
 };
 
 /**
@@ -222,7 +237,6 @@ function SpiralMenu(setup) {
 	};
 
 	this.startIndex = 0; // the index of this.currentRoot.children which we are showing
-	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
 }
 
 /**
@@ -231,7 +245,6 @@ function SpiralMenu(setup) {
  * @return {Element} the svg element
  */
 SpiralMenu.prototype.draw = function() {
-
 	// Update sliceCount
 	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
 	
@@ -272,6 +285,7 @@ SpiralMenu.prototype.draw = function() {
  * @private
  */
 SpiralMenu.prototype.redraw = function() {
+	this.startIndex = 0; // FIXME
 	// remove root
 	this.currentRoot.view.destroy();
 
@@ -984,7 +998,15 @@ SpiralMenuItemView.prototype.notify = function(notification, args) {
 			}
 		break;
 		case 'child removed':
-		
+		// only have to do stuff if child is in view
+		if (args[0].view) {
+			// if last slice, must decrement startIndex
+			if (args[0].view.index == sm.sliceCount) {
+				// FIXME should decrement
+			} 
+			
+			sm.redraw();
+		}
 		break;
 	}
 };

@@ -149,7 +149,7 @@ function go(rootId, prop) {
 			if(!data.length) return;
 			var unloadedChildren = [];
 			if(data.length > opts.pageSize) {
-				console.warn("Too many slices (" + data.length + ")! Showing only top " +  opts.pageSize + ".");
+				console.log("Showing first " +  opts.pageSize + "slices  of " + data.length + ".");
 				
 				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
 				unloadedChildren = data.splice(opts.pageSize);
@@ -251,8 +251,10 @@ function loadChildren(node, qid, prop){
 			}
 
 			if(data.length > opts.pageSize) {
-				console.warn("Too many slices (" + data.length + ")! Showing only top " +  opts.pageSize + ".");
-				data = data.slice(0, opts.pageSize);
+				console.log("Showing first " +  opts.pageSize + "slices  of " + data.length + ".");
+
+				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
+				node.unloadedChildren = unloadedChildren; // for 'load more' option
 			}
 
 			var ids = 'Q' + data.join('|Q');
@@ -272,6 +274,16 @@ function loadChildren(node, qid, prop){
 					node.addChild(child);
 				}
 
+				// if there are unloaded children, add node at end to load more
+				if(node.unloadedChildren) {
+					var loadMoreChild = new SpiralMenuItem({
+						title: 'load more',
+						textIcon: '+',
+						onClick: loadMoreChildren
+					});
+					node.addChild(loadMoreChild);
+				}
+
 				// redraw
 				sm.promoteChild(node);
 				Snap('svg').attr({
@@ -284,11 +296,9 @@ function loadChildren(node, qid, prop){
 // SpiralMenuItem click handler
 // loads another page of data
 function loadMoreChildren(smi) {
-	console.log("TODO: Load more children");
-	//return;
 	var root = sm.currentRoot;
 
-	//root.removeChild(smi);
+	root.removeChild(smi);
 
 	var ids = root.unloadedChildren.splice(0, opts.pageSize);
 	ids = 'Q' + ids.join('|Q');
@@ -306,9 +316,9 @@ function loadMoreChildren(smi) {
 			findImage(childEntity, child);
 
 			root.addChild(child);
-			if(root.unloadedChildren.length) {
-				//root.addChild(smi); // add load more button again
-			}
+		}
+		if(root.unloadedChildren.length) {
+			root.addChild(smi); // add load more button again
 		}
 	});
 }
