@@ -808,6 +808,16 @@ SpiralMenuItemView.prototype.drawSlice = function() {
 			sm.startAutoScroll();
 		}
 	});
+	group.touchstart(function() {
+		sm.updateTitle(smi.title);
+		sm.stopAutoScroll();
+	}, function() {
+		sm.updateTitle(sm.currentRoot.title);
+		if(sm.autoScroll) {
+			sm.startAutoScroll();
+		}
+	});
+
 
 	sm.slices[index] = this;
 	sm.svg.spiral.add(group);
