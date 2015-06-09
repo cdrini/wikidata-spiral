@@ -210,6 +210,7 @@ function SpiralMenu(setup) {
 	setParam(this, setup, 'maxSlices'          , 12            ); // slices to display at a time
 	setParam(this, setup, 'autoScroll'         , false         );
 	setParam(this, setup, 'autoScrollLength'   , 2500          ); // in ms
+	setParam(this, setup, 'pageStart'          , 0             ); // index of currentRoot.children we're starting from
 	
 	this.sourceRoot = this.root;         // The 'true' root
 	this.currentRoot = this.sourceRoot;  // The root as a result of navigation. Could change.
@@ -229,7 +230,20 @@ function SpiralMenu(setup) {
 		y: this.size/2 + this.titleSize
 	};
 
-	this.startIndex = 0; // the index of this.currentRoot.children which we are showing
+	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
+
+	this.validatePageStart();
+}
+
+/**
+ * Ensures the page start is in a valid range * 
+ */
+SpiralMenu.prototype.validatePageStart = function() {
+	if (this.maxSlices < this.sliceCount && this.pageStart > 0 ||
+		this.pageStart > this.currentRoot.children.length - this.sliceCount)
+	{
+		this.pageStart = Math.max(0, this.currentRoot.children.length - this.sliceCount);
+	}
 }
 
 /**
@@ -240,6 +254,7 @@ function SpiralMenu(setup) {
 SpiralMenu.prototype.draw = function() {
 	// Update sliceCount
 	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
+	this.validatePageStart();
 	
 	// create svg
 	if (!this.svg) {
@@ -257,7 +272,7 @@ SpiralMenu.prototype.draw = function() {
 	// draw slices
 	this.slices = [];
 	for(var i = 0; i < this.sliceCount; ++i) {
-		new SpiralMenuItemView(this, this.currentRoot.children[i], i);
+		new SpiralMenuItemView(this, this.currentRoot.children[this.pageStart + i], i);
 	}
 
 	// draw root
@@ -278,7 +293,6 @@ SpiralMenu.prototype.draw = function() {
  * @private
  */
 SpiralMenu.prototype.redraw = function() {
-	this.startIndex = 0; // FIXME
 	// remove root
 	this.currentRoot.view.destroy();
 
@@ -364,7 +378,7 @@ SpiralMenu.prototype.drawTitle = function() {
 	});
 
 	this.svg.title.textPath.attr({
-		startOffset: '48%'
+		startOffset: '48%' // FIXME
 	});
 
 	return this.svg.title;
@@ -436,7 +450,7 @@ SpiralMenu.prototype.createSlicePath = function(index) {
  * Creates a spiral menu's slice path 'd' string, used when removing the slice.
  * 
  * @param {Number} index - the index on the circle
- * @param {String} dir - one of left, right
+ * @param {String} dir - one of start, end
  * @return {String} the slice's path string
  */
 SpiralMenu.prototype.createEmptySlicePath = function(index, dir) {
@@ -480,6 +494,7 @@ SpiralMenu.prototype.createEmptySlicePath = function(index, dir) {
 				'L', innerEndCoord.x, innerEndCoord.y,
 				'A', this.innerRadius, this.innerRadius, 0, 0, 0, innerEndCoord.x-0.1, innerEndCoord.y-0.1,
 				'Z');
+			break;
 	}
 
 	return pathStr;
@@ -515,7 +530,7 @@ SpiralMenu.prototype.promoteChild = function(newRoot) {
 		newRootSlice.destroy();
 
 		// redraw
-		sm.startIndex = 0;
+		sm.pageStart = 0;
 		sm.draw();
 	});
 	newRootSlice.update();
@@ -533,7 +548,7 @@ SpiralMenu.prototype.demoteRoot = function() {
 	// update root
 	this.currentRoot = this.currentRoot.parent;
 
-	this.startIndex = 0;
+	this.pageStart = 0;
 	this.draw();
 };
 
@@ -544,7 +559,7 @@ SpiralMenu.prototype.demoteRoot = function() {
  */
 SpiralMenu.prototype.next = function() {
 	var sm = this;
-	var newI = this.startIndex + this.sliceCount;
+	var newI = this.pageStart + this.sliceCount;
 
 	// if no next item, exit
 	if (newI >= this.currentRoot.children.length) {
@@ -583,7 +598,7 @@ SpiralMenu.prototype.next = function() {
 		this.slices[i].index = i;
 		this.slices[i].update();
 	}
-	this.startIndex++;
+	this.pageStart++;
 
 	return newSlice.group;
 }
@@ -595,7 +610,7 @@ SpiralMenu.prototype.next = function() {
  */
 SpiralMenu.prototype.previous = function() {
 	var sm = this;
-	var newI = this.startIndex - 1;
+	var newI = this.pageStart - 1;
 
 	// if no previous item, exit
 	if (newI < 0) {
@@ -636,7 +651,7 @@ SpiralMenu.prototype.previous = function() {
 		this.slices[i].update();
 
 	}
-	this.startIndex--;
+	this.pageStart--;
 
 	return newSlice.group;
 };
@@ -994,7 +1009,7 @@ SpiralMenuItemView.prototype.notify = function(notification, args) {
 		case 'child removed':
 		// only have to do stuff if child is in view
 		if (args[0].view) {
-			// if last slice, must decrement startIndex
+			// if last slice, must decrement pageStart
 			if (args[0].view.index == sm.sliceCount) {
 				// FIXME should decrement
 			} 

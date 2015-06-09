@@ -23,7 +23,8 @@ var opts = {
 	pageSize: 49,
 	slices: 12,
 	autoScroll: false,
-	query: 'CLAIM[$property:$root]'
+	query: 'CLAIM[$property:$root]',
+	pageStart: 0
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
@@ -130,9 +131,14 @@ function parseURLParams() {
 	for(var i = 0; i < params.length; ++i) {
 		if(opts[params[i].param] instanceof Array){
 			opts[params[i].param] = params[i].value.split(',');
-		} else if (isBoolean(opts[params[i].param])) {
+		}
+		else if (isBoolean(opts[params[i].param])) {
 			opts[params[i].param] = params[i].value === 'true' ? true : false;
-		}	else {
+		}
+		else if (typeof opts[params[i].param] == 'number') {
+			opts[params[i].param] = +params[i].value; // convert to number - float or int
+		}
+		else {
 			opts[params[i].param] = params[i].value;
 		}
 	}
@@ -202,7 +208,8 @@ function go(rootId, prop) {
 							animate: false,
 							maxSlices: opts.slices,
 							autoScroll: opts.autoScroll,
-							onClick: clickHandler
+							onClick: clickHandler,
+							pageStart: opts.pageStart
 						});
 					}
 
@@ -298,13 +305,17 @@ function loadChildren(node, qid, prop){
 function loadMoreChildren(smi) {
 	var root = sm.currentRoot;
 
-	root.removeChild(smi);
+	// slide back to hide plus
+	sm.previous();
 
 	var ids = root.unloadedChildren.splice(0, opts.pageSize);
 	ids = 'Q' + ids.join('|Q');
 
+
 	getFromQId(ids)
 	.done(function(data, textStatus, jqXHR){
+		root.removeChild(smi);
+
 		// create smi's for children
 		for(var qid in data.entities) {
 			var childEntity = new WD.Entity(data.entities[qid]);
@@ -322,6 +333,9 @@ function loadMoreChildren(smi) {
 		if(root.unloadedChildren.length) {
 			root.addChild(smi);
 		}
+
+		// slide forward one
+		sm.next();
 	});
 }
 
