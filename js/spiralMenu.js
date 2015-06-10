@@ -106,7 +106,7 @@ function SpiralMenuItem(setup) {
 	setParam(this, setup, 'onClick'         , function(){} ); // called BEFORE checking for children and promoting to root
 	setParam(this, setup, 'onBecomingRoot'  , function(){} );
 	setParam(this, setup, 'children'        , []           );
-
+	setParam(this, setup, 'fill'            , randColor()  );
 	this._id = SpiralMenuItem.newId();
 
 	this.click = function() {
@@ -746,7 +746,7 @@ SpiralMenuItemView.prototype.drawSlice = function() {
 	var pathStr = sm.createSlicePath(index);
 	var shape = s.path(pathStr);
 	shape.attr({
-		style: "fill:" + randColor()
+		style: "fill:" + smi.fill
 	});
 	group.add(shape);
 
@@ -845,7 +845,7 @@ SpiralMenuItemView.prototype.drawRoot = function() {
 	// create SVG circle
 	var shape = sm.drawInnerCircle(false);
 	shape.attr({
-		style: "fill: " + randColor()
+		style: "fill: " + smi.fill
 	});
 	group.add(shape);
 
