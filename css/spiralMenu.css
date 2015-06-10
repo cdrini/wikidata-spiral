@@ -48,3 +48,14 @@ svg {
   fill: white;
   -webkit-font-smoothing: antialiased;
 }
+
+
+svg {
+  transition-duration: 0.2s;
+  transition-property: opacity, -webkit-filter, filter;
+}
+.loading {
+  opacity: 0.7;
+  -webkit-filter: saturate(0.5);
+          filter: saturate(0.5);
+}

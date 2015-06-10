@@ -235,7 +235,7 @@ function clickHandler(isChild, smi) {
 
 	if(smi.isLeaf()) {
 		// must load children
-		// TODO: add loading class to slice only
+		// TODO: add loading class to slice only?
 		Snap('svg').addClass('loading')
 		.attr({
 			'pointerEvents': 'none' // avoid clicking while we're loading content
@@ -292,6 +292,7 @@ function loadChildren(node, qid, prop){
 				}
 
 				// redraw
+				Snap('svg').removeClass('loading');
 				sm.promoteChild(node);
 				Snap('svg').attr({
 					'pointerEvents': ''
