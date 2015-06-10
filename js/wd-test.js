@@ -252,9 +252,10 @@ function loadChildren(node, qid, prop){
 			data = data.items;
 
 			if(!data.length) {
-				return Snap('svg').attr({
-					'pointerEvents': ''
-				}); // avoid double clicking;
+				return Snap('svg').removeClass('loading')
+					.attr({
+						'pointerEvents': ''
+					}); // avoid double clicking;
 			}
 
 			if(data.length > opts.pageSize) {

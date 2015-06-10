@@ -41,12 +41,11 @@ svg {
 }
 
 .text-icon {
-  font-family: Roboto Thin, sans-serif;
+  font-family: "Roboto Thin", "Roboto", sans-serif;
   font-size: 3em;
-  /* font-weight: 100; */
-  /* text-shadow: 0 0 4px rgba(0,0,0,0.7); */
   fill: white;
   -webkit-font-smoothing: antialiased;
+  font-weight: 100;
 }
 
 

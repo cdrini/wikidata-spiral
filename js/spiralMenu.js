@@ -370,15 +370,17 @@ SpiralMenu.prototype.drawTitle = function() {
 	circle.remove();
 
 	// create text on path
-	this.svg.title = s.text(50, 50, root.title).addClass('title')
+	this.svg.title = s.text(0, 0, root.title).addClass('title')
 	.attr({
+		x: '',
+		y: '',
 		textpath: path,
 		pointerEvents: 'none',
 		dy: -2
 	});
 
 	this.svg.title.textPath.attr({
-		startOffset: '48%' // FIXME
+		startOffset: '50%'
 	});
 
 	return this.svg.title;
@@ -919,7 +921,7 @@ SpiralMenuItemView.prototype.update = function() {
 		// If we already had an image
 		var img = this.group.select('image');
 		if(img) {
-			var clipPathId = img.attr('clip-path').match(/#[^\)]*/);
+			var clipPathId = img.attr('clip-path').match(/#[^\)\"]*/);
 			if(!clipPathId) {
 				console.log(img);
 				console.log(img.attr('clip-path'));
