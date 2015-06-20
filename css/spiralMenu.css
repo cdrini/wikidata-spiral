@@ -24,12 +24,6 @@ svg {
 
 .root {
 	fill: #069;
-
-	transition: transform 0.3s;
-}
-
-.root:hover {
-	transform: scale(1.1);
 }
 
 .title {
@@ -41,7 +35,7 @@ svg {
 }
 
 .text-icon {
-  font-family: "Roboto Thin", "Roboto", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 3em;
   fill: white;
   -webkit-font-smoothing: antialiased;
