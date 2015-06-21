@@ -25,7 +25,7 @@ var opts = {
 	autoScroll: false,
 	query: 'CLAIM[$property:$root]',
 	pageStart: 0,
-	alwaysShowTextIcon: false
+	unicodeIcons: false // forces text icon to always show
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
@@ -169,8 +169,9 @@ function go(rootId, prop) {
 					
 					// Create new SMI for root
 					rootNode = new SpiralMenuItem({
-						title: rootEntity.getLabel(opts.langs),
-						href: rootEntity.getUrl()
+						title:    rootEntity.getLabel(opts.langs),
+						href:     rootEntity.getUrl(),
+						textIcon: opts.unicodeIcons ? rootEntity.getClaimValue('P487') : undefined
 					});
 					findImage(rootEntity, rootNode);
 
@@ -183,8 +184,9 @@ function go(rootId, prop) {
 
 						var childEntity = new WD.Entity(data.entities[qid]);
 						var child = new SpiralMenuItem({
-							title: childEntity.getLabel(opts.langs),
-							href: childEntity.getUrl()
+							title:    childEntity.getLabel(opts.langs),
+							href:     childEntity.getUrl(),
+							textIcon: opts.unicodeIcons ? childEntity.getClaimValue('P487') : undefined
 						});
 						child.entity = childEntity;
 						findImage(childEntity, child);
@@ -211,7 +213,7 @@ function go(rootId, prop) {
 							autoScroll: opts.autoScroll,
 							onClick: clickHandler,
 							pageStart: opts.pageStart,
-							alwaysShowTextIcon: opts.alwaysShowTextIcon
+							alwaysShowTextIcon: opts.unicodeIcons
 						});
 					}
 
@@ -275,8 +277,9 @@ function loadChildren(node, qid, prop){
 				for(var qid in data.entities) {
 					var childEntity = new WD.Entity(data.entities[qid]);
 					var child = new SpiralMenuItem({
-						title: childEntity.getLabel(opts.langs),
-						href: childEntity.getUrl()
+						title:    childEntity.getLabel(opts.langs),
+						href:     childEntity.getUrl(),
+						textIcon: opts.unicodeIcons ? childEntity.getClaimValue('P487') : undefined
 					});
 					child.entity = childEntity;
 					findImage(childEntity, child);

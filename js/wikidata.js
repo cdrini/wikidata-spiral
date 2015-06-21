@@ -13,6 +13,30 @@ WD.Entity.prototype.getClaim = function(prop) {
 }
 
 /**
+ * Get's a claim's value. Uses the first statement.
+ *
+ * @param {String} prop - a property PID
+ * @return {String} The value
+ */
+WD.Entity.prototype.getClaimValue = function(prop) {
+	var claim = this.entity.claims[prop];
+	if(!claim) return undefined;
+
+	// TODO: if there is a preferred statement, use it
+	// TODO: else pick first normal ranked statement
+
+	var statement = claim[0];
+	var type = statement.mainsnak.snaktype;
+	switch(type) {
+		case 'value':
+			return statement.mainsnak.datavalue.value;
+		default:
+			// TODO: Add other cases
+			return statement.mainsnak.datavalue.value;
+	}
+}
+
+/**
  * Returns the first of the arguments that has 1 or more claims. If none
  * found, returns undefined.
  *
