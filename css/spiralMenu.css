@@ -42,6 +42,10 @@ svg {
   font-weight: 100;
 }
 
+image+.text-icon {
+  text-shadow: 0 0 5px;
+}
+
 
 svg {
   transition-duration: 0.2s;

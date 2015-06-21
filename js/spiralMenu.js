@@ -211,6 +211,7 @@ function SpiralMenu(setup) {
 	setParam(this, setup, 'autoScroll'         , false         );
 	setParam(this, setup, 'autoScrollLength'   , 2500          ); // in ms
 	setParam(this, setup, 'pageStart'          , 0             ); // index of currentRoot.children we're starting from
+	setParam(this, setup, 'alwaysShowTextIcon' , false         ); // whether text icon overlays images
 	
 	this.sourceRoot = this.root;         // The 'true' root
 	this.currentRoot = this.sourceRoot;  // The root as a result of navigation. Could change.
@@ -781,7 +782,7 @@ SpiralMenuItemView.prototype.drawSlice = function() {
 		shape.addClass('main-shape');
 	}
 
-	if(smi.textIcon || !smi.backgroundImage) {
+	if(smi.textIcon || !smi.backgroundImage || sm.alwaysShowTextIcon) {
 		smi.textIconText = smi.textIcon || smi.title[0];
 		// find center of slice
 		var centerAngle = 2*Math.PI*(this.index/sm.sliceCount + 0.5/sm.sliceCount);
@@ -928,6 +929,7 @@ SpiralMenuItemView.prototype.drawRoot = function() {
  */
 SpiralMenuItemView.prototype.update = function() {
 	var s = this.sm.svg;
+	var sm = this.sm;
 	var smi = this.smi;
 
 	// Update backgroundImage
@@ -995,9 +997,14 @@ SpiralMenuItemView.prototype.update = function() {
 	}
 
 	// remove textIcon if using default icon
-	if (smi.backgroundImage && smi.textIconText && !smi.textIcon) {
+	if (!sm.alwaysShowTextIcon && smi.backgroundImage && smi.textIconText && !smi.textIcon) {
 		this.group.select('.text-icon').remove();
 		delete smi.textIconText;
+	}
+
+	// make sure text is on top
+	if (sm.alwaysShowTextIcon) {
+		this.group.append(this.group.select('.text-icon'));
 	}
 
 	// Update textIcon location

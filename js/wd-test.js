@@ -24,7 +24,8 @@ var opts = {
 	slices: 12,
 	autoScroll: false,
 	query: 'CLAIM[$property:$root]',
-	pageStart: 0
+	pageStart: 0,
+	alwaysShowTextIcon: false
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
@@ -209,7 +210,8 @@ function go(rootId, prop) {
 							maxSlices: opts.slices,
 							autoScroll: opts.autoScroll,
 							onClick: clickHandler,
-							pageStart: opts.pageStart
+							pageStart: opts.pageStart,
+							alwaysShowTextIcon: opts.alwaysShowTextIcon
 						});
 					}
 
