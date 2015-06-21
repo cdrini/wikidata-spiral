@@ -1008,7 +1008,7 @@ SpiralMenuItemView.prototype.update = function() {
 	}
 
 	// Update textIcon location
-	if(smi.textIcon || !smi.backgroundImage) {
+	if(sm.alwaysShowTextIcon || smi.textIcon || !smi.backgroundImage) {
 		// find center of slice
 		var centerAngle = 2*Math.PI*(this.index/sm.sliceCount + 0.5/sm.sliceCount);
 		var centerRadius = (sm.outerRadius + sm.innerRadius)/2
