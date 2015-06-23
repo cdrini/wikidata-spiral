@@ -10,6 +10,13 @@ body {
   text-align: center;
 }
 
+div#main {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    max-width: 800px;
+}
+
 h1 {
   text-align: center;
 }

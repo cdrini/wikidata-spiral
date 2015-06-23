@@ -152,8 +152,9 @@ function go(rootId, prop) {
 	getSlices(opts.property, rootId)
 		.done(function(data, textStatus, jqXHR) {
 			data = data.items;
-
 			if(!data.length) return;
+
+			var totalItems = data.length;
 			var unloadedChildren = [];
 			if(data.length > opts.pageSize) {
 				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
@@ -177,6 +178,7 @@ function go(rootId, prop) {
 
 					rootNode.entity = rootEntity;
 					rootNode.unloadedChildren = unloadedChildren; // for 'load more' option
+					rootNode.expectedLength = totalItems;
 
 					// load children and add to rootNode
 					for(var qid in data.entities) {
@@ -214,6 +216,14 @@ function go(rootId, prop) {
 							onClick: clickHandler,
 							pageStart: opts.pageStart,
 							alwaysShowTextIcon: opts.unicodeIcons
+						});
+
+						sm.on('scroll', function() {
+							var sm = this;
+							var bounds = sm.getPageBounds();
+							$('.scroll-indicator').text(
+								(bounds.first+1) +'-' + (bounds.last+1) +
+								' / ' + sm.currentRoot.expectedLength);
 						});
 					}
 
@@ -262,6 +272,7 @@ function loadChildren(node, qid, prop){
 					}); // avoid double clicking;
 			}
 
+			node.expectedLength = data.length;
 			if(data.length > opts.pageSize) {
 				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
 

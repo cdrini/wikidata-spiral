@@ -263,7 +263,6 @@ SpiralMenu.prototype.draw = function() {
 	this.validatePageStart();
 	
 	// create svg
-	var triggerScrollEvent = false;
 	if (!this.svg) {
 		this.svg = Snap(this.canvasWidth, this.canvasHeight).addClass('spiral-menu');
 		/* this does make it look better on mobile, but makes it impossible to zoom :/
@@ -274,11 +273,6 @@ SpiralMenu.prototype.draw = function() {
 		});*/
 
 		this.svg.spiral = this.svg.group().addClass('spiral');
-
-		// trigger a scroll event if not at beginning on init
-		if (this.pageStart != 0) {
-			triggerScrollEvent = true;
-		}
 	}
 
 	// draw slices
@@ -294,9 +288,7 @@ SpiralMenu.prototype.draw = function() {
 	this.drawTitle();
 
 	// trigger event
-	if (triggerScrollEvent) {
-		this.trigger('scroll');
-	}
+	this.trigger('scroll');
 
 	// begin autoscrolling
 	if(this.autoScroll) {
@@ -784,6 +776,22 @@ SpiralMenu.prototype.trigger = function(eventName, args) {
 	var listeners = this.listeners[eventName];
 	for (var i = 0; i < listeners.length; i++) {
 		listeners[i].apply(this, args);
+	};
+};
+
+/**
+ * Gets first and last indices of the current page
+ * 
+ * return {Object} bounds.first - first index
+ *                 bounds.last  - last index
+ *                 bounds.count - number of elements in page
+ */
+SpiralMenu.prototype.getPageBounds = function() {
+	var sm = this;
+	return {
+		first: sm.pageStart,
+		last: sm.pageStart + sm.sliceCount - 1,
+		count: sm.sliceCount
 	};
 };
 
