@@ -174,7 +174,7 @@ SpiralMenuItem.prototype.indexOf = function(smi) {
 SpiralMenuItem.prototype.removeChild = function(smi) {
 	var index = this.indexOf(smi);
 	if(index !== -1) {
-		this.children.splice(index, index);
+		this.children.splice(index, 1);
 		this.emit('child removed', [smi]);
 		return smi;
 	} else {
@@ -234,10 +234,15 @@ function SpiralMenu(setup) {
 	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
 
 	this.validatePageStart();
+
+	// event listeners
+	this.listeners = {
+		'scroll': []
+	};
 }
 
 /**
- * Ensures the page start is in a valid range * 
+ * Ensures the page start is in a valid range 
  */
 SpiralMenu.prototype.validatePageStart = function() {
 	if (this.maxSlices < this.sliceCount && this.pageStart > 0 ||
@@ -258,6 +263,7 @@ SpiralMenu.prototype.draw = function() {
 	this.validatePageStart();
 	
 	// create svg
+	var triggerScrollEvent = false;
 	if (!this.svg) {
 		this.svg = Snap(this.canvasWidth, this.canvasHeight).addClass('spiral-menu');
 		/* this does make it look better on mobile, but makes it impossible to zoom :/
@@ -268,6 +274,11 @@ SpiralMenu.prototype.draw = function() {
 		});*/
 
 		this.svg.spiral = this.svg.group().addClass('spiral');
+
+		// trigger a scroll event if not at beginning on init
+		if (this.pageStart != 0) {
+			triggerScrollEvent = true;
+		}
 	}
 
 	// draw slices
@@ -281,6 +292,11 @@ SpiralMenu.prototype.draw = function() {
 
 	// draw title
 	this.drawTitle();
+
+	// trigger event
+	if (triggerScrollEvent) {
+		this.trigger('scroll');
+	}
 
 	// begin autoscrolling
 	if(this.autoScroll) {
@@ -536,6 +552,10 @@ SpiralMenu.prototype.promoteChild = function(newRoot) {
 
 		// redraw
 		sm.pageStart = 0;
+
+		// trigger event
+		sm.trigger('scroll');
+
 		sm.draw();
 	});
 	newRootSlice.update();
@@ -561,6 +581,9 @@ SpiralMenu.prototype.demoteRoot = function() {
 		// update root
 		sm.pageStart = sm.currentRoot.parentPageStart;
 		sm.currentRoot = sm.currentRoot.parent;
+
+		// trigger event
+		sm.trigger('scroll');
 
 		// redraw
 		sm.draw();
@@ -615,7 +638,10 @@ SpiralMenu.prototype.next = function() {
 		this.slices[i].index = i;
 		this.slices[i].update();
 	}
-	this.pageStart++;
+	sm.pageStart++;
+
+	// trigger event
+	sm.trigger('scroll');
 
 	return newSlice.group;
 }
@@ -668,7 +694,10 @@ SpiralMenu.prototype.previous = function() {
 		this.slices[i].update();
 
 	}
-	this.pageStart--;
+	sm.pageStart--;
+
+	// trigger event
+	sm.trigger('scroll');
 
 	return newSlice.group;
 };
@@ -697,7 +726,66 @@ SpiralMenu.prototype.stopAutoScroll = function() {
 	if(!this.autoScrollInterval) return;
 	clearInterval(this.autoScrollInterval);
 	this.autoScrollInterval = 0;
-}
+};
+
+/**
+ * Adds an event listener
+ * 
+ * @param {String} eventName - the name of the event (see listeners object in
+ *                             constructor)
+ * @param {Function} callback - the function to perform when the event occurs
+ */
+SpiralMenu.prototype.on = function(eventName, callback) {
+	if (typeof(this.listeners[eventName]) == 'undefined') {
+		throw ("'" + eventName + "' is not a recognized event.");
+	}
+
+	this.listeners[eventName].push(callback);
+};
+
+/**
+ * Removes an event listener. If callback not present, throws an error.
+ * 
+ * @param {String} eventName - the name of the event (see listeners object in
+ *                             constructor)
+ * @param {Function} callback - the callback to remove
+ */
+SpiralMenu.prototype.off = function(eventName, callback) {
+	if (typeof(this.listeners[eventName]) == 'undefined') {
+		throw ("'" + eventName + "' is not a recognized event.");
+	}
+
+	var listeners = this.listeners[eventName];
+	for (var i = 0; i < listeners.length; i++) {
+		if (listeners[i] == callback ||
+			listeners[i].toString() == callback.toString()){
+			this.listeners[eventName].splice(i, 1);
+			return;
+		}
+	};
+
+	// we failed to find it
+	throw (callback.toString() + ' is not a listener');
+
+};
+
+/**
+ * Triggers an event, calling any listeners listening to the event.
+ * 
+ * @private
+ * @param {String} eventName - the name of the event (see listeners object in
+ *                             constructor)
+ */
+SpiralMenu.prototype.trigger = function(eventName, args) {
+	if (typeof(this.listeners[eventName]) == 'undefined') {
+		throw ("'" + eventName + "' is not a recognized event.");
+	}
+
+	var listeners = this.listeners[eventName];
+	for (var i = 0; i < listeners.length; i++) {
+		listeners[i].apply(this, args);
+	};
+};
 
 /**
  * Stores relevant data for the view of SpiralMenuItem
