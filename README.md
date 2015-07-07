@@ -26,6 +26,7 @@ unicodeIcons  | Boolean       | false                      | Whether to use unic
 
 ## Examples
 * Subclasses of food: [root=Q2095&property=P279](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&property=P279)
+* Subtaxons of all life forms: [root=Q2382443&property=P171](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2382443&property=P171) (can you find humans?)
 * Created by van Gogh: [root=Q5582&property=P170&slices=9](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q5582&property=P170&slices=9)
 * Subclasses/instances of food: [root=Q2095&query=CLAIM[279:$root] OR CLAIM[31:$root]](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&query=CLAIM[279:$root] OR CLAIM[31:$root]) (most browsers should encode automatically)
 * Fruits (using unicode icons):
