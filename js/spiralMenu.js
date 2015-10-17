@@ -1,7 +1,7 @@
 /**
  * Calls fn only once, and ignore all future calls within ``wait`` ms of a
  * previous call.
- * 
+ *
  * @param {Function} fn - the function to call
  * @param {Number} wait - in ms, the length of time necessary after a call
  *                        to trigger another call.
@@ -17,9 +17,9 @@ function ignoreSpam(fn, wait) {
 	};
 }
 /**
- * Calls fn on every count-th call of fn, so long as each call is within lag 
+ * Calls fn on every count-th call of fn, so long as each call is within lag
  * ms of the last.
- * 
+ *
  * @example el.click(fixedCall(fn, 1, 300)); // fn is called only if a click
  * 	                                         // is followed by no other clicks
  *                                           // in the following 300ms
@@ -69,10 +69,10 @@ function assertType(obj, class_name) {
 /**
  * Returns a random color in hsl format. Avoids similar consecutive random
  * colors.
- * 
+ *
  * @return {String} a color in hsl format
  */
-function randColor() {	
+function randColor() {
 	var hue = Math.round(Math.random()*360);
 	// avoid returning similar hues right next to each other
 	while(Math.abs(randColor.lastHue - hue) < 20) {
@@ -89,7 +89,7 @@ randColor.lastHue = 0;
 function circlePath(cx, cy, r) {
 	// TODO: add nodes param
 	// TODO: add param to specify break in circle
-	return quickPath('M', cx, cy+r, 
+	return quickPath('M', cx, cy+r,
 		'A', r, r, 0, 0, 1, cx-r, cy,
 		     r, r, 0, 0, 1, cx, cy-r,
 		     r, r, 0, 0, 1, cx+r, cy,
@@ -204,7 +204,7 @@ function SpiralMenu(setup) {
 	var sampleClickFn = function(isChild, smi){};
 	setParam(this, setup, 'root'               , null          );
 	setParam(this, setup, 'size'               , 400           ); // in px
-	setParam(this, setup, 'onClick'            , sampleClickFn ); 
+	setParam(this, setup, 'onClick'            , sampleClickFn );
 	setParam(this, setup, 'animate'            , true          );
 	setParam(this, setup, 'animationLength'    , 500           ); // in ms
 	setParam(this, setup, 'maxSlices'          , 12            ); // slices to display at a time
@@ -212,7 +212,7 @@ function SpiralMenu(setup) {
 	setParam(this, setup, 'autoScrollLength'   , 2500          ); // in ms
 	setParam(this, setup, 'pageStart'          , 0             ); // index of currentRoot.children we're starting from
 	setParam(this, setup, 'alwaysShowTextIcon' , false         ); // whether text icon overlays images
-	
+
 	this.sourceRoot = this.root;         // The 'true' root
 	this.currentRoot = this.sourceRoot;  // The root as a result of navigation. Could change.
 
@@ -242,7 +242,7 @@ function SpiralMenu(setup) {
 }
 
 /**
- * Ensures the page start is in a valid range 
+ * Ensures the page start is in a valid range
  */
 SpiralMenu.prototype.validatePageStart = function() {
 	if (this.maxSlices < this.sliceCount && this.pageStart > 0 ||
@@ -254,14 +254,14 @@ SpiralMenu.prototype.validatePageStart = function() {
 
 /**
  * Creates the spiral menu
- * 
+ *
  * @return {Element} the svg element
  */
 SpiralMenu.prototype.draw = function() {
 	// Update sliceCount
 	this.sliceCount = Math.min(this.maxSlices, this.currentRoot.children.length);
 	this.validatePageStart();
-	
+
 	// create svg
 	if (!this.svg) {
 		this.svg = Snap(this.canvasWidth, this.canvasHeight).addClass('spiral-menu');
@@ -316,7 +316,7 @@ SpiralMenu.prototype.redraw = function() {
 
 /**
  * Creates circle at the size of the outer circle
- * 
+ *
  * @return {Element} the circle's element
  */
 SpiralMenu.prototype.drawOuterCircle = function(asPath) {
@@ -329,7 +329,7 @@ SpiralMenu.prototype.drawOuterCircle = function(asPath) {
 
 /**
  * Creates circle at the size of the inner circle
- * 
+ *
  * @return {Element} the circle's element
  */
 SpiralMenu.prototype.drawInnerCircle = function(asPath) {
@@ -342,7 +342,7 @@ SpiralMenu.prototype.drawInnerCircle = function(asPath) {
 
 /**
  * Creates path string of circle at the size of the outer circle
- * 
+ *
  * @return {String} the circle's path string
  */
 SpiralMenu.prototype.outerCirclePath = function() {
@@ -351,7 +351,7 @@ SpiralMenu.prototype.outerCirclePath = function() {
 
 /**
  * Creates path string of circle at the size of the inner circle
- * 
+ *
  * @return {String} the circle's path string
  */
 SpiralMenu.prototype.innerCirclePath = function() {
@@ -360,7 +360,7 @@ SpiralMenu.prototype.innerCirclePath = function() {
 
 /**
  * Creates the necessary structure for the title
- * 
+ *
  * @return {Element} the title's element
  */
 SpiralMenu.prototype.drawTitle = function() {
@@ -397,7 +397,7 @@ SpiralMenu.prototype.drawTitle = function() {
 
 /**
  * Update title content
- * 
+ *
  * @param {string} text - the new title.
  * @return {Element} the title's element
  */
@@ -406,7 +406,7 @@ SpiralMenu.prototype.updateTitle = function(text) {
 }
 /**
  * Sets title content to currentRoot's title
- * 
+ *
  * @return {Element} the title's element
  */
 SpiralMenu.prototype.resetTitle = function() {
@@ -415,7 +415,7 @@ SpiralMenu.prototype.resetTitle = function() {
 
 /**
  * Creates a spiral menu's slice path 'd' string
- * 
+ *
  * @param {Number} index - the index on the circle
  * @return {String} the slice's path string
  */
@@ -459,7 +459,7 @@ SpiralMenu.prototype.createSlicePath = function(index) {
 
 /**
  * Creates a spiral menu's slice path 'd' string, used when removing the slice.
- * 
+ *
  * @param {Number} index - the index on the circle
  * @param {String} dir - one of start, end
  * @return {String} the slice's path string
@@ -555,14 +555,14 @@ SpiralMenu.prototype.promoteChild = function(newRoot) {
 
 SpiralMenu.prototype.demoteRoot = function() {
 	var sm = this;
-	
+
 	// remove all children
 	for(var i = 0; i < this.sliceCount; ++i) {
 		this.slices[i].destroy();
 	}
 
 	// animate root to slice
-	sm.sliceCount = this.currentRoot.parentSliceCount; 
+	sm.sliceCount = this.currentRoot.parentSliceCount;
 	var absIndex = this.currentRoot.parent.indexOf(this.currentRoot);
 	var relIndex = absIndex - this.currentRoot.parentPageStart;
 	sm.currentRoot.view.shape.animate({
@@ -586,7 +586,7 @@ SpiralMenu.prototype.demoteRoot = function() {
 
 /**
  * Scrolls next child item into view
- * 
+ *
  * @return {Element} the new slice's group (if a new one was created)
  */
 SpiralMenu.prototype.next = function() {
@@ -602,7 +602,7 @@ SpiralMenu.prototype.next = function() {
 	var slice = this.slices[0];
 	slice.shape.animate({
 		d: sm.createEmptySlicePath(0, 'start')
-	}, this.animationLength, function() {
+	}, this.animationLength, mina.linear, function() {
 		slice.destroy();
 	});
 	this.slices.shift(); // remove first element, shifting down
@@ -640,7 +640,7 @@ SpiralMenu.prototype.next = function() {
 
 /**
  * Scrolls to previous child item into view
- * 
+ *
  * @return {Element} the new slice's group (if a new one was created)
  */
 SpiralMenu.prototype.previous = function() {
@@ -656,7 +656,7 @@ SpiralMenu.prototype.previous = function() {
 	var slice = this.slices[this.sliceCount - 1];
 	slice.shape.animate({
 		d: sm.createEmptySlicePath(this.sliceCount - 1, 'end')
-	}, this.animationLength, function() {
+	}, this.animationLength, mina.linear, function() {
 		slice.destroy();
 	});
 	this.slices.unshift({}); // push {} from left
@@ -696,8 +696,8 @@ SpiralMenu.prototype.previous = function() {
 
 /**
  * Begins auto scrolling the UI.
- * 
- * @param {Number} ms - length of scroll interval. 
+ *
+ * @param {Number} ms - length of scroll interval.
  */
 SpiralMenu.prototype.startAutoScroll = function(ms) {
 	if (sm.autoScrollInterval) return; // don't start if already started
@@ -712,7 +712,7 @@ SpiralMenu.prototype.startAutoScroll = function(ms) {
 
 /**
  * Stops auto scrolling the UI.
- * 
+ *
  */
 SpiralMenu.prototype.stopAutoScroll = function() {
 	if(!this.autoScrollInterval) return;
@@ -722,7 +722,7 @@ SpiralMenu.prototype.stopAutoScroll = function() {
 
 /**
  * Adds an event listener
- * 
+ *
  * @param {String} eventName - the name of the event (see listeners object in
  *                             constructor)
  * @param {Function} callback - the function to perform when the event occurs
@@ -737,7 +737,7 @@ SpiralMenu.prototype.on = function(eventName, callback) {
 
 /**
  * Removes an event listener. If callback not present, throws an error.
- * 
+ *
  * @param {String} eventName - the name of the event (see listeners object in
  *                             constructor)
  * @param {Function} callback - the callback to remove
@@ -763,7 +763,7 @@ SpiralMenu.prototype.off = function(eventName, callback) {
 
 /**
  * Triggers an event, calling any listeners listening to the event.
- * 
+ *
  * @private
  * @param {String} eventName - the name of the event (see listeners object in
  *                             constructor)
@@ -781,7 +781,7 @@ SpiralMenu.prototype.trigger = function(eventName, args) {
 
 /**
  * Gets first and last indices of the current page
- * 
+ *
  * return {Object} bounds.first - first index
  *                 bounds.last  - last index
  *                 bounds.count - number of elements in page
@@ -797,7 +797,7 @@ SpiralMenu.prototype.getPageBounds = function() {
 
 /**
  * Stores relevant data for the view of SpiralMenuItem
- * 
+ *
  * @constructor
  * @param {SpiralMenu}     sm:    the spiral menu
  * @param {SpiralMenuItem} smi:   the item represented
@@ -946,7 +946,7 @@ SpiralMenuItemView.prototype.drawRoot = function() {
 	var sm = this.sm;
 	var smi = this.smi;
 	var s = sm.svg;
-	
+
 	// create group
 	var group = s.group();
 	group.attr({
@@ -1042,7 +1042,7 @@ SpiralMenuItemView.prototype.update = function() {
 			var clipPath = Snap(clipPathId + ' > path');
 			var bbox = clipPath.getBBox();
 
-			
+
 			var anim = clipPath.inAnim();
 
 			if (anim.length) {
@@ -1055,7 +1055,7 @@ SpiralMenuItemView.prototype.update = function() {
 				clone.remove();
 				img.attr({
 					'xlink:href': smi.backgroundImage
-				});				
+				});
 				img.animate({
 					x: Math.round(bbox.x),
 					y: Math.round(bbox.y),
@@ -1064,7 +1064,7 @@ SpiralMenuItemView.prototype.update = function() {
 				}, sm.animationLength);
 				img.inAnim()[0].status(anim.status());
 			}
-			
+
 			img.attr({
 				'xlink:href': smi.backgroundImage,
 				x: Math.round(bbox.x),
@@ -1141,8 +1141,8 @@ SpiralMenuItemView.prototype.notify = function(notification, args) {
 			// if last slice, must decrement pageStart
 			if (args[0].view.index == sm.sliceCount) {
 				// FIXME should decrement
-			} 
-			
+			}
+
 			sm.redraw();
 		}
 		break;
