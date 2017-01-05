@@ -16,19 +16,25 @@ var samples = [
 	}
 ];
 
-var opts = {
+var defaultOpts = {
 	root: 'Q5582',
 	property: 'P170',
 	langs: ['en', 'fr'],
 	pageSize: 49,
 	slices: 12,
 	autoScroll: false,
-	query: 'CLAIM[$property:$root]',
+	wdq: 'CLAIM[$property:$root]',
+	sparql: 'SELECT ?x WHERE { ?x wdt:$property wd:$root }',
 	pageStart: 0,
 	unicodeIcons: false // forces text icon to always show
 };
 
-var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
+var optAliases = {
+	query: 'wdq'
+};
+
+var userOpts = parseURLParams(defaultOpts, optAliases);
+var opts = buildFullOpts(defaultOpts, userOpts);
 
 function isBoolean(bool) {
 	return bool === true || bool === false;
@@ -66,7 +72,7 @@ function findImage(entity, smi) {
 		'P117',     // chemical structure
 		'P207',     // bathymetry image
 		'P181'      // taxon range map image
-	);          
+	);
 
 	if(!imgs) return null;
 
@@ -96,6 +102,23 @@ function WDQ(query) {
 	return $.ajax({
 		url: 'https://wdq.wmflabs.org/api?q=' + encodeURIComponent(query),
 		dataType: "jsonp"
+	})
+	.then(function(data) {
+		return data.items.map(id => 'Q' + id);
+	});
+}
+
+function WDQS(query) {
+	return $.ajax({
+		url: "https://query.wikidata.org/sparql",
+		data: {
+			query: query,
+			format: 'json'
+		}
+	})
+	.then(function(data) {
+		return data.results.bindings
+		.map(o => o.x.value.replace("http://www.wikidata.org/entity/", ""));
 	});
 }
 
@@ -103,22 +126,39 @@ function WDQ(query) {
  * Makes a query for the slices of qid using opts.query. Accepts
  * 2 variables in the query, $property and $root, corresponding to
  * opts.property and the current root.
- * 
+ *
  * @param {String} prop - Property (ex: 'P279')
  * @param {String} qid - QID of root (ex: 'Q2095')
  */
 function getSlices(prop, qid) {
-	var query = decodeURIComponent(opts.query);
-	query = query.replace(/\$root/g, qid.slice(1));
-	query = query.replace(/\$property/g, prop.slice(1));
-	return WDQ(query);
+	if (userOpts.wdq) {
+		var query = decodeURIComponent(opts.wdq);
+		query = query.replace(/\$root/g, qid.slice(1));
+		query = query.replace(/\$property/g, prop.slice(1));
+		return WDQ(query);
+	}
+	else {
+		// Default to sparql
+		var query = decodeURIComponent(opts.sparql);
+		query = query.replace(/\$root/g, qid);
+		query = query.replace(/\$property/g, prop);
+		// support shorthand SPARQL
+		if (query.indexOf('{') == -1) {
+			var prefix = 'SELECT ?x WHERE { ';
+			var suffix = ' }';
+
+			if (query.trim().slice(0,2) != '?x') {
+				prefix += ' ?x ';
+			}
+			query = prefix + query + suffix;
+		}
+		return WDQS(query);
+	}
 }
 
-function parseURLParams() {
-	var url = location.href;
-	var params = url.match(/\?.*/);
-	if(!params) return;
-	params = params[0];
+function parseURLParams(defaultOpts, aliases) {
+	var params = location.search;
+	if(!params) return {};
 
 	params = params.slice(1).split('&')
 						.map(function(p) {
@@ -129,45 +169,59 @@ function parseURLParams() {
 							};
 						});
 
+	var result = {};
 	for(var i = 0; i < params.length; ++i) {
-		if(opts[params[i].param] instanceof Array){
-			opts[params[i].param] = params[i].value.split(',');
+		var paramName = params[i].param;
+		if (paramName in aliases) paramName = aliases[paramName];
+
+		if(defaultOpts[paramName] instanceof Array) {
+			result[paramName] = params[i].value.split(',');
 		}
-		else if (isBoolean(opts[params[i].param])) {
-			opts[params[i].param] = params[i].value === 'true' ? true : false;
+		else if (isBoolean(defaultOpts[paramName])) {
+			result[paramName] = params[i].value === 'true' ? true : false;
 		}
-		else if (typeof opts[params[i].param] == 'number') {
-			opts[params[i].param] = +params[i].value; // convert to number - float or int
+		else if (typeof defaultOpts[paramName] == 'number') {
+			result[paramName] = +params[i].value; // convert to number - float or int
 		}
 		else {
-			opts[params[i].param] = params[i].value;
+			result[paramName] = params[i].value;
 		}
 	}
+
+	return result;
 }
+
+function buildFullOpts(defaultOpts, userOpts) {
+	var result = {};
+	for (var key in defaultOpts) {
+		result[key] = key in userOpts ? userOpts[key] : defaultOpts[key];
+	}
+	return result;
+}
+
 var rootNode;
 var sm;
 
 // the initializing function which loads the root and its children
 function go(rootId, prop) {
 	getSlices(opts.property, rootId)
-		.done(function(data, textStatus, jqXHR) {
-			data = data.items;
+		.then(function(data) {
 			if(!data.length) return;
 
 			var totalItems = data.length;
 			var unloadedChildren = [];
 			if(data.length > opts.pageSize) {
 				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
-				
+
 				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
 				unloadedChildren = data.splice(opts.pageSize);
 			}
 
-			var ids = 'Q' + data.join('|Q');
+			var ids = data.join('|');
 			getFromQId(rootId + '|' + ids)
 				.done(function(data, textStatus, jqXHR){
 					var rootEntity = new WD.Entity(data.entities[rootId]);
-					
+
 					// Create new SMI for root
 					rootNode = new SpiralMenuItem({
 						title:    rootEntity.getLabel(opts.langs),
@@ -262,9 +316,7 @@ function clickHandler(isChild, smi) {
 // loads on the children
 function loadChildren(node, qid, prop){
 	getSlices(prop, qid)
-	.done(function(data, textStatus, jqXHR) {
-			data = data.items;
-
+	.then(function(data) {
 			if(!data.length) {
 				return Snap('svg').removeClass('loading')
 					.attr({
@@ -274,13 +326,13 @@ function loadChildren(node, qid, prop){
 
 			node.expectedLength = data.length;
 			if(data.length > opts.pageSize) {
-				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
+				console.log("Showing first " +  opts.pageSize + " slices of " + data.length + ".");
 
 				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
 				node.unloadedChildren = data.splice(opts.pageSize);
 			}
 
-			var ids = 'Q' + data.join('|Q');
+			var ids = data.join('|');
 
 			getFromQId(ids)
 			.done(function(data, textStatus, jqXHR){
@@ -327,8 +379,7 @@ function loadMoreChildren(smi) {
 	sm.previous();
 
 	var ids = root.unloadedChildren.splice(0, opts.pageSize);
-	ids = 'Q' + ids.join('|Q');
-
+	ids = ids.join('|');
 
 	getFromQId(ids)
 	.done(function(data, textStatus, jqXHR){
@@ -358,7 +409,6 @@ function loadMoreChildren(smi) {
 }
 
 
-parseURLParams();
 opts.pageSize = 49;
 go(opts.root, opts.property);
 
