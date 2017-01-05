@@ -22,7 +22,7 @@ langs         | CSV           | en,fr                      | The language(s) to 
 slices        | Integer       | 12                         | The number of slices to display at a time.
 autoScroll    | Boolean       | false                      | Whether the spiral should automatically scroll.
 wdq           | WDQ           | `CLAIM[$property:$root]`   | The Wikidata Query used to determine slices. See [WDQ's Documentation](https://wdq.wmflabs.org/api_documentation.html) for help. The variables `$property` and `$root` are available for use in the query.
-sparql        | SPARQL        | `SELECT ?x WHERE { ?x wdt:$property wd:$root }` | The SPARQL query used to determine the slices. The children should be in the variable `?x`. See [WDQS](https://query.wikidata.org/) for examples. The variables `$property` and `$root` are available for use in the query.
+sparql        | SPARQL        | `SELECT ?x WHERE { ?x wdt:$property wd:$root }` | The SPARQL query used to determine the slices. The children should be in the variable `?x`. See [WDQS](https://query.wikidata.org/) for examples. The variables `$property` and `$root` are available for use in the query. <br/> Also supports "short" SPARQL excluding the `SELECT` (ex: `?x wdt:P31 wd:$root`) or excluding the `?x` as well (ex: <code>wdt:P279&#124;wdt:P31 wd:$root</code>).
 unicodeIcons  | Boolean       | false                      | Whether to use unicode characters (`P487`) instead of label's first letter as an icon for each slice. Also forces the letters to show above images.
 
 ### Deprecated Parameters
@@ -36,7 +36,7 @@ query         | WDQ           | `CLAIM[$property:$root]`   | Renamed to `wdq`.
 * Subclasses of food: [root=Q2095&property=P279](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&property=P279)
 * Subtaxons of all life forms: [root=Q2382443&property=P171](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2382443&property=P171) (can you find humans?)
 * Created by van Gogh: [root=Q5582&property=P170&slices=9](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q5582&property=P170&slices=9)
-* Subclasses/instances of food: [root=Q2095&sparql=SELECT ?x WHERE { ?x wdt:P279|wdt:P31 wd:$root }](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&sparql=SELECT ?x WHERE { ?x wdt:P279|wdt:P31 wd:$root }) (most browsers should encode automatically)
+* Subclasses/instances of food: [root=Q2095&sparql=wdt:P279|wdt:P31 wd:$root](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&sparql=wdt:P279|wdt:P31 wd:$root) (most browsers should encode automatically)
 * Fruits (using unicode icons):
 [root=Q3314483&property=P279&unicodeIcons=true](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q3314483&property=P279&unicodeIcons=true)
 

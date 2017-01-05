@@ -142,6 +142,16 @@ function getSlices(prop, qid) {
 		var query = decodeURIComponent(opts.sparql);
 		query = query.replace(/\$root/g, qid);
 		query = query.replace(/\$property/g, prop);
+		// support shorthand SPARQL
+		if (query.indexOf('{') == -1) {
+			var prefix = 'SELECT ?x WHERE { ';
+			var suffix = ' }';
+
+			if (query.trim().slice(0,2) != '?x') {
+				prefix += ' ?x ';
+			}
+			query = prefix + query + suffix;
+		}
 		return WDQS(query);
 	}
 }
