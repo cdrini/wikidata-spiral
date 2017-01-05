@@ -23,9 +23,13 @@ var opts = {
 	pageSize: 49,
 	slices: 12,
 	autoScroll: false,
-	query: 'CLAIM[$property:$root]',
+	wdq: 'CLAIM[$property:$root]',
 	pageStart: 0,
 	unicodeIcons: false // forces text icon to always show
+};
+
+var optAliases = {
+	query: 'wdq'
 };
 
 var defaultOpts = JSON.parse(JSON.stringify(opts)); //HACK, HACK, HACK, HACK
@@ -66,7 +70,7 @@ function findImage(entity, smi) {
 		'P117',     // chemical structure
 		'P207',     // bathymetry image
 		'P181'      // taxon range map image
-	);          
+	);
 
 	if(!imgs) return null;
 
@@ -103,12 +107,12 @@ function WDQ(query) {
  * Makes a query for the slices of qid using opts.query. Accepts
  * 2 variables in the query, $property and $root, corresponding to
  * opts.property and the current root.
- * 
+ *
  * @param {String} prop - Property (ex: 'P279')
  * @param {String} qid - QID of root (ex: 'Q2095')
  */
 function getSlices(prop, qid) {
-	var query = decodeURIComponent(opts.query);
+	var query = decodeURIComponent(opts.wdq);
 	query = query.replace(/\$root/g, qid.slice(1));
 	query = query.replace(/\$property/g, prop.slice(1));
 	return WDQ(query);
@@ -130,17 +134,20 @@ function parseURLParams() {
 						});
 
 	for(var i = 0; i < params.length; ++i) {
-		if(opts[params[i].param] instanceof Array){
-			opts[params[i].param] = params[i].value.split(',');
+		var paramName = params[i].param;
+		if (paramName in optAliases) paramName = optAliases[paramName];
+
+		if(opts[paramName] instanceof Array) {
+			opts[paramName] = params[i].value.split(',');
 		}
-		else if (isBoolean(opts[params[i].param])) {
-			opts[params[i].param] = params[i].value === 'true' ? true : false;
+		else if (isBoolean(opts[paramName])) {
+			opts[paramName] = params[i].value === 'true' ? true : false;
 		}
-		else if (typeof opts[params[i].param] == 'number') {
-			opts[params[i].param] = +params[i].value; // convert to number - float or int
+		else if (typeof opts[paramName] == 'number') {
+			opts[paramName] = +params[i].value; // convert to number - float or int
 		}
 		else {
-			opts[params[i].param] = params[i].value;
+			opts[paramName] = params[i].value;
 		}
 	}
 }
@@ -158,7 +165,7 @@ function go(rootId, prop) {
 			var unloadedChildren = [];
 			if(data.length > opts.pageSize) {
 				console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
-				
+
 				// data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
 				unloadedChildren = data.splice(opts.pageSize);
 			}
@@ -167,7 +174,7 @@ function go(rootId, prop) {
 			getFromQId(rootId + '|' + ids)
 				.done(function(data, textStatus, jqXHR){
 					var rootEntity = new WD.Entity(data.entities[rootId]);
-					
+
 					// Create new SMI for root
 					rootNode = new SpiralMenuItem({
 						title:    rootEntity.getLabel(opts.langs),
