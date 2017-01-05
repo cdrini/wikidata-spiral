@@ -16,12 +16,13 @@ Originally created as a means to explore Wikidata's subclass hierarchy, Wikidata
 
 Name          | Type          | Default                    | Description
 ------------- | ------------- | -------------------------- | -------------
-root          | QID           | Q5582                      | The item displayed as root
-property      | PID           | P170                       | The property to follow. The spiral's slices are determined by `CLAIM[$property:$root]`
+root          | QID           | Q5582                      | The item displayed as root.
+property      | PID           | P170                       | The property to follow. The spiral's slices are determined by `CLAIM[$property:$root]` (or whatever is specified in the `wdq` or `sparql` parameters).
 langs         | CSV           | en,fr                      | The language(s) to pull label names as.
 slices        | Integer       | 12                         | The number of slices to display at a time.
 autoScroll    | Boolean       | false                      | Whether the spiral should automatically scroll.
 wdq           | WDQ           | `CLAIM[$property:$root]`   | The Wikidata Query used to determine slices. See [WDQ's Documentation](https://wdq.wmflabs.org/api_documentation.html) for help. The variables `$property` and `$root` are available for use in the query.
+sparql        | SPARQL        | `SELECT ?x WHERE { ?x wdt:$property wd:$root }` | The SPARQL query used to determine the slices. The children should be in the variable `?x`. See [WDQS](https://query.wikidata.org/) for examples. The variables `$property` and `$root` are available for use in the query.
 unicodeIcons  | Boolean       | false                      | Whether to use unicode characters (`P487`) instead of label's first letter as an icon for each slice. Also forces the letters to show above images.
 
 ### Deprecated Parameters
@@ -34,15 +35,16 @@ query         | WDQ           | `CLAIM[$property:$root]`   | Renamed to `wdq`.
 ## Examples
 * Subclasses of food: [root=Q2095&property=P279](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&property=P279)
 * Created by van Gogh: [root=Q5582&property=P170&slices=9](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q5582&property=P170&slices=9)
-* Subclasses/instances of food: [root=Q2095&wdq=CLAIM[279:$root] OR CLAIM[31:$root]](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&wdq=CLAIM[279:$root] OR CLAIM[31:$root]) (most browsers should encode automatically)
+* Subclasses/instances of food: [root=Q2095&sparql=SELECT ?x WHERE { ?x wdt:P279|wdt:P31 wd:$root }](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&sparql=SELECT ?x WHERE { ?x wdt:P279|wdt:P31 wd:$root }) (most browsers should encode automatically)
 * Fruits (using unicode icons):
-[root=Q3314483&wdq=CLAIM[279:$root] OR CLAIM[31:$root]&unicodeIcons=true](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q3314483&wdq=CLAIM[279:$root] OR CLAIM[31:$root]&unicodeIcons=true)
+[root=Q3314483&property=P279&unicodeIcons=true](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q3314483&property=P279&unicodeIcons=true)
 
 # Credits
 
 ## APIs/resources
 * [Wikidata](https://www.wikidata.org/w/api.php)
-* [WDQ](https://wdq.wmflabs.org/), by Magnus Manske
+* [Wikidata Query](https://wdq.wmflabs.org/), by Magnus Manske
+* [Wikidata Query Service](https://query.wikidata.org/)
 * [Wikimedia Commons](https://commons.wikimedia.org/w/api.php) for images
 
 ## Third party libraries
