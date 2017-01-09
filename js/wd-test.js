@@ -457,3 +457,9 @@ Snap(document.body).touchend(function(ev) {
 		forward(ev);
 	}
 });
+
+$('a.examples').on('click', function(ev) {
+	ev.preventDefault();
+	$('a.examples').toggleClass('active');
+	$('#examples').fadeToggle(100);
+});

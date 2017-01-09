@@ -76,3 +76,34 @@ ul {
 
   text-align: right;
 }
+
+.popup {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  margin: 3em 1em;
+  background: rgba(0,0,0,0.85);
+  border-radius: 2px;
+  color: rgba(255,255,255,0.95);
+}
+
+
+#examples {
+  font-family: sans-serif;
+}
+#examples ul {
+  list-style: none;
+  padding: 0;
+}
+#examples li:not(:last-child) {
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+
+#examples a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: .6em 1em;
+  line-height: 1.5em;
+}
