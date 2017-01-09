@@ -104,7 +104,7 @@ function WDQ(query) {
 		dataType: "jsonp"
 	})
 	.then(function(data) {
-		return data.items.map(id => 'Q' + id);
+		return data.items.map(function (id) { return 'Q' + id; });
 	});
 }
 
@@ -118,7 +118,9 @@ function WDQS(query) {
 	})
 	.then(function(data) {
 		return data.results.bindings
-		.map(o => o.x.value.replace("http://www.wikidata.org/entity/", ""));
+		.map(function(o) {
+			return o.x.value.replace("http://www.wikidata.org/entity/", "");
+		});
 	});
 }
 
