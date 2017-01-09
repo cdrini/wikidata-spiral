@@ -22,7 +22,7 @@ langs         | CSV           | en,fr                      | The language(s) to 
 slices        | Integer       | 12                         | The number of slices to display at a time.
 autoScroll    | Boolean       | false                      | Whether the spiral should automatically scroll.
 wdq           | WDQ           | `CLAIM[$property:$root]`   | The Wikidata Query used to determine slices. See [WDQ's Documentation](https://wdq.wmflabs.org/api_documentation.html) for help. The variables `$property` and `$root` are available for use in the query.
-sparql        | SPARQL        | `SELECT ?x WHERE { ?x wdt:$property wd:$root }` | The SPARQL query used to determine the slices. The children should be in the variable `?x`. See [WDQS](https://query.wikidata.org/) for examples. The variables `$property` and `$root` are available for use in the query. <br/> Also supports "short" SPARQL excluding the `SELECT` (ex: `?x wdt:P31 wd:$root`) or excluding the `?x` as well (ex: <code>wdt:P279&#124;wdt:P31 wd:$root</code>).
+sparql        | SPARQL        | `SELECT ?x WHERE { ?x wdt:$property wd:$root }` | The SPARQL query used to determine the slices. The items should be in the first variable. See [WDQS](https://query.wikidata.org/) for examples. The variables `$property` and `$root` are available for use in the query. <br/> Also supports "short" SPARQL excluding the `SELECT` (ex: `?x wdt:P31 wd:$root`) or excluding the `?x` as well (ex: <code>wdt:P279&#124;wdt:P31 wd:$root</code>).
 unicodeIcons  | Boolean       | false                      | Whether to use unicode characters (`P487`) instead of label's first letter as an icon for each slice. Also forces the letters to show above images.
 
 ### Deprecated Parameters

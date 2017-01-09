@@ -117,9 +117,10 @@ function WDQS(query) {
 		}
 	})
 	.then(function(data) {
+		var itemVar = data.head.vars[0];
 		return data.results.bindings
 		.map(function(o) {
-			return o.x.value.replace("http://www.wikidata.org/entity/", "");
+			return o[itemVar].value.replace("http://www.wikidata.org/entity/", "");
 		});
 	});
 }
