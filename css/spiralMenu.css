@@ -57,19 +57,3 @@ svg {
   -webkit-filter: saturate(0.5);
           filter: saturate(0.5);
 }
-
-.scroll-indicator {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-
-    margin: 20px;
-    padding: 4px 10px;
-
-    background: rgba(0,0,0,0.5);
-    border-radius: 2em;
-
-    font-family: sans-serif;
-    font-size: 0.9em;
-    color: white;
-}

@@ -285,7 +285,7 @@ function go(rootId, prop) {
 					}
 
 					var svg = sm.draw();
-					svg.insertBefore(Snap('small'));
+					svg.insertBefore(Snap('.scroll-indicator'));
 				});
 	  });
 }
