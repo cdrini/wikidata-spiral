@@ -1,8 +1,4 @@
-/**
- * WD contains useful Wikidata-related functions and types.
- */
 
-var WD = {};
 
 /**
  * @constructor

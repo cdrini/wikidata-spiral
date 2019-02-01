@@ -1,21 +1,3 @@
-var samples = [
-  {
-    desc: 'Created by van Gogh',
-    root: 'Q5582',
-    property: 'P170'
-  },
-  {
-    desc: 'Created by da Vinci',
-    root: 'Q762',
-    property: 'P170'
-  },
-  {
-    desc: 'Subclasses of Food',
-    root: 'Q2095',
-    property: 'P279'
-  }
-];
-
 var defaultOpts = {
   root: 'Q5582',
   property: 'P170',
@@ -91,40 +73,6 @@ function findImage(entity, smi) {
   });
 }
 
-function getFromQId(qid) {
-  return $.ajax({
-    url: "https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=" + qid,
-    dataType: "jsonp"
-  });
-}
-
-function WDQ(query) {
-  return $.ajax({
-    url: 'https://wdq.wmflabs.org/api?q=' + encodeURIComponent(query),
-    dataType: "jsonp"
-  })
-  .then(function(data) {
-    return data.items.map(function (id) { return 'Q' + id; });
-  });
-}
-
-function WDQS(query) {
-  return $.ajax({
-    url: "https://query.wikidata.org/sparql",
-    data: {
-      query: query,
-      format: 'json'
-    }
-  })
-  .then(function(data) {
-    var itemVar = data.head.vars[0];
-    return data.results.bindings
-    .map(function(o) {
-      return o[itemVar].value.replace("http://www.wikidata.org/entity/", "");
-    });
-  });
-}
-
 /**
  * Makes a query for the slices of qid using opts.query. Accepts
  * 2 variables in the query, $property and $root, corresponding to
@@ -138,7 +86,7 @@ function getSlices(prop, qid) {
     var query = decodeURIComponent(opts.wdq);
     query = query.replace(/\$root/g, qid.slice(1));
     query = query.replace(/\$property/g, prop.slice(1));
-    return WDQ(query);
+    return WD.WDQ(query);
   }
   else {
     // Default to sparql
@@ -155,7 +103,7 @@ function getSlices(prop, qid) {
       }
       query = prefix + query + suffix;
     }
-    return WDQS(query);
+    return WD.WDQS(query);
   }
 }
 
@@ -220,8 +168,7 @@ function go(rootId, prop) {
         unloadedChildren = data.splice(opts.pageSize);
       }
 
-      var ids = data.join('|');
-      getFromQId(rootId + '|' + ids)
+      WD.getQIDs([rootId].concat(data))
         .done(function(data, textStatus, jqXHR){
           var rootEntity = new WD.Entity(data.entities[rootId]);
 
@@ -335,9 +282,7 @@ function loadChildren(node, qid, prop){
         node.unloadedChildren = data.splice(opts.pageSize);
       }
 
-      var ids = data.join('|');
-
-      getFromQId(ids)
+      WD.getQIDs(data)
       .done(function(data, textStatus, jqXHR){
         // create smi's for children
         for(var qid in data.entities) {
@@ -382,9 +327,7 @@ function loadMoreChildren(smi) {
   sm.previous();
 
   var ids = root.unloadedChildren.splice(0, opts.pageSize);
-  ids = ids.join('|');
-
-  getFromQId(ids)
+  WD.getQIDs(ids)
   .done(function(data, textStatus, jqXHR){
     root.removeChild(smi);
 
