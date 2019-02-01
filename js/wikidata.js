@@ -1,6 +1,6 @@
 var WD = {};
 WD.Entity = function(entity) {
-	this.entity = entity;
+  this.entity = entity;
 }
 /**
  * Gets the array of property's values. If not found, returns undefined.
@@ -9,7 +9,7 @@ WD.Entity = function(entity) {
  * @return {Array} of values or undefined
  */
 WD.Entity.prototype.getClaim = function(prop) {
-	return this.entity.claims[prop];
+  return this.entity.claims[prop];
 }
 
 /**
@@ -19,21 +19,21 @@ WD.Entity.prototype.getClaim = function(prop) {
  * @return {String} The value
  */
 WD.Entity.prototype.getClaimValue = function(prop) {
-	var claim = this.entity.claims[prop];
-	if(!claim) return undefined;
+  var claim = this.entity.claims[prop];
+  if(!claim) return undefined;
 
-	// TODO: if there is a preferred statement, use it
-	// TODO: else pick first normal ranked statement
+  // TODO: if there is a preferred statement, use it
+  // TODO: else pick first normal ranked statement
 
-	var statement = claim[0];
-	var type = statement.mainsnak.snaktype;
-	switch(type) {
-		case 'value':
-			return statement.mainsnak.datavalue.value;
-		default:
-			// TODO: Add other cases
-			return statement.mainsnak.datavalue.value;
-	}
+  var statement = claim[0];
+  var type = statement.mainsnak.snaktype;
+  switch(type) {
+    case 'value':
+      return statement.mainsnak.datavalue.value;
+    default:
+      // TODO: Add other cases
+      return statement.mainsnak.datavalue.value;
+  }
 }
 
 /**
@@ -44,43 +44,43 @@ WD.Entity.prototype.getClaimValue = function(prop) {
  * @return {Array} of values or undefined
  */
 WD.Entity.prototype.getFirstClaim = function() {
-	for (var i = 0; i < arguments.length; i++) {
-		if(this.getClaim(arguments[i])) {
-			return this.getClaim(arguments[i]);
-		}
-	};
-	return undefined;
+  for (var i = 0; i < arguments.length; i++) {
+    if(this.getClaim(arguments[i])) {
+      return this.getClaim(arguments[i]);
+    }
+  };
+  return undefined;
 }
 
 WD.Entity.prototype.getLabel = function(langs, returnObject) {
-	if(langs instanceof String) {
-		langs = [ langs ];
-	}
+  if(langs instanceof String) {
+    langs = [ langs ];
+  }
 
-	// iterate through langs until we find one we have
-	for(var i = 0; i < langs.length; ++i) {
-		var obj = this.entity.labels[langs[i]];
-		if(obj) {
-			if (returnObject) {
-				return obj;
-			} else {
-				return obj.value;
-			}
-		}
-	}
+  // iterate through langs until we find one we have
+  for(var i = 0; i < langs.length; ++i) {
+    var obj = this.entity.labels[langs[i]];
+    if(obj) {
+      if (returnObject) {
+        return obj;
+      } else {
+        return obj.value;
+      }
+    }
+  }
 
-	// no luck. Try to return any label.
-	for(var lang in this.entity.labels) {
-		if(returnObject) {
-			return this.entity.labels[lang];
-		} else {
-			return this.entity.labels[lang].value;
-		}
-	}
+  // no luck. Try to return any label.
+  for(var lang in this.entity.labels) {
+    if(returnObject) {
+      return this.entity.labels[lang];
+    } else {
+      return this.entity.labels[lang].value;
+    }
+  }
 
-	// still nothing?!? return empty string
-	return "";
+  // still nothing?!? return empty string
+  return "";
 }
 WD.Entity.prototype.getUrl = function() {
-	return 'https://www.wikidata.org/wiki/' + this.entity.title;
+  return 'https://www.wikidata.org/wiki/' + this.entity.title;
 }

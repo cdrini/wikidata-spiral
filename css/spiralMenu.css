@@ -11,19 +11,19 @@ html, body {
 
 /* spiralMenu */
 svg {
-	display: block;
-	margin: auto;
+  display: block;
+  margin: auto;
 }
 .root, .slice {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 .slice {
-	fill: #CCC;
+  fill: #CCC;
 }
 
 .root {
-	fill: #069;
+  fill: #069;
 }
 
 .title {
