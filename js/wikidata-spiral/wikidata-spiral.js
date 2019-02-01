@@ -227,8 +227,8 @@ function loadMoreChildren(smi) {
       root.addChild(smi);
     }
 
-    // slide forward one
-    sm.next();
+    // slide forward one. 500 to ~wait for the image to load.
+    setTimeout(function() {sm.next();}, 500);
   });
 }
 
