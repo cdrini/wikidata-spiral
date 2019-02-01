@@ -1,5 +1,5 @@
 View it [here](https://rawgit.com/cdrini/wikidata-spiral/master/index.html).
-Only tested on latest version of Google Chrome!
+Only tested on Firefox 64 and Chrome 71.
 
 ![Demo image](https://raw.githubusercontent.com/cdrini/wikidata-spiral/master/imgs/Created%20by%20van%20Gogh.png)
 
@@ -36,7 +36,7 @@ query         | WDQ           | `CLAIM[$property:$root]`   | Renamed to `wdq`.
 * Subclasses of food: [root=Q2095&property=P279](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&property=P279)
 * Subtaxons of all life forms: [root=Q2382443&property=P171](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2382443&property=P171) (can you find humans?)
 * Created by van Gogh: [root=Q5582&property=P170&slices=9](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q5582&property=P170&slices=9)
-* Subclasses/instances of food: [root=Q2095&sparql=wdt:P279|wdt:P31 wd:$root](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&sparql=wdt:P279|wdt:P31 wd:$root) (most browsers should encode automatically)
+* Subclasses/instances of food: [root=Q2095&sparql=wdt:P279|wdt:P31 wd:$root](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q2095&sparql=wdt:P279|wdt:P31%20wd:$root)
 * Fruits (using unicode icons):
 [root=Q3314483&property=P279&unicodeIcons=true](https://rawgit.com/cdrini/wikidata-spiral/master/index.html?root=Q3314483&property=P279&unicodeIcons=true)
 
