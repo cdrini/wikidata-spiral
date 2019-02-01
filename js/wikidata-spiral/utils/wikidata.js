@@ -1,4 +1,25 @@
-function findImage(entity, smi) {
+/**
+ * @param {WD.Entity} entity
+ * @param {object} opts wikidata-spiral options
+ * @return {SpiralMenuItem}
+ */
+function spiralMenuItemFromEntity(entity, opts) {
+  var smi = new SpiralMenuItem({
+    title: entity.getLabel(opts.langs),
+    href: entity.getUrl(),
+    textIcon: opts.unicodeIcons ? entity.getClaimValue('P487') : undefined
+  });
+  smi.entity = entity;
+  _findImage(entity, smi);
+  return smi;
+}
+
+/**
+ * Adds an image to the spiral menu item if it can find one in the entity
+ * @param {WD.Entity} entity
+ * @param {SpiralMenuItem} smi
+ */
+function _findImage(entity, smi) {
   var imgs = entity.getFirstClaim(
     'P18',      // image
 
@@ -38,7 +59,7 @@ function findImage(entity, smi) {
   }).done(function(data, textStatus, jqXHR){
     var url;
     data = data.query.pages;
-    for(var tmp in data) {
+    for (var tmp in data) {
       data = data[tmp];
     }
     url = data.imageinfo[0].thumburl;

@@ -76,14 +76,7 @@ function go(rootId, prop) {
       var rootEntity = new WD.Entity(data.entities[rootId]);
 
       // Create new SMI for root
-      rootNode = new SpiralMenuItem({
-        title: rootEntity.getLabel(opts.langs),
-        href: rootEntity.getUrl(),
-        textIcon: opts.unicodeIcons ? rootEntity.getClaimValue('P487') : undefined
-      });
-      findImage(rootEntity, rootNode);
-
-      rootNode.entity = rootEntity;
+      rootNode = spiralMenuItemFromEntity(rootEntity, opts);
       rootNode.unloadedChildren = unloadedChildren; // for 'load more' option
       rootNode.expectedLength = totalItems;
 
@@ -92,13 +85,7 @@ function go(rootId, prop) {
         if (qid == rootId) continue;
 
         var childEntity = new WD.Entity(data.entities[qid]);
-        var child = new SpiralMenuItem({
-          title: childEntity.getLabel(opts.langs),
-          href: childEntity.getUrl(),
-          textIcon: opts.unicodeIcons ? childEntity.getClaimValue('P487') : undefined
-        });
-        child.entity = childEntity;
-        findImage(childEntity, child);
+        var child = spiralMenuItemFromEntity(childEntity, opts);
         rootNode.addChild(child);
       }
 
@@ -189,14 +176,7 @@ function loadChildren(node, qid, prop){
         // create smi's for children
         for(var qid in data.entities) {
           var childEntity = new WD.Entity(data.entities[qid]);
-          var child = new SpiralMenuItem({
-            title:    childEntity.getLabel(opts.langs),
-            href:     childEntity.getUrl(),
-            textIcon: opts.unicodeIcons ? childEntity.getClaimValue('P487') : undefined
-          });
-          child.entity = childEntity;
-          findImage(childEntity, child);
-
+          var child = spiralMenuItemFromEntity(childEntity, opts);
           node.addChild(child);
         }
 
@@ -220,8 +200,10 @@ function loadChildren(node, qid, prop){
   });
 }
 
-// SpiralMenuItem click handler
-// loads another page of data
+/**
+ * Loads/appends another page of data to the spiral
+ * @param {SpiralMenuItem} smi the "Load more" smi
+ */
 function loadMoreChildren(smi) {
   var root = sm.currentRoot;
 
@@ -236,13 +218,7 @@ function loadMoreChildren(smi) {
     // create smi's for children
     for(var qid in data.entities) {
       var childEntity = new WD.Entity(data.entities[qid]);
-      var child = new SpiralMenuItem({
-        title: childEntity.getLabel(opts.langs),
-        href: childEntity.getUrl()
-      });
-      child.entity = childEntity;
-      findImage(childEntity, child);
-
+      var child = spiralMenuItemFromEntity(childEntity, opts);
       root.addChild(child);
     }
 
@@ -256,8 +232,6 @@ function loadMoreChildren(smi) {
   });
 }
 
-
-opts.pageSize = 49;
 go(opts.root, opts.property);
 
 function forward(e) {
