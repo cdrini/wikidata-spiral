@@ -274,15 +274,10 @@ $(document).on('keyup', null, 'shift+space', backward);
 $(document).on('keyup', null, 'left', backward);
 $(document).on('keyup', null, 'up', backward);
 
-$(document.body).on('mousewheel', function(e){
+$(document.body).on('wheel', ignoreSpam(function(e) {
   e.preventDefault();
-  if(e.originalEvent.wheelDelta /120 > 0) {
-      backward(e);
-  }
-  else {
-      forward(e);
-  }
-});
+  if (e.originalEvent.deltaY > 0) backward(e); else forward(e);
+}, 30));
 
 var touchStartY = 0;
 Snap(document.body).touchstart(function(ev) {
