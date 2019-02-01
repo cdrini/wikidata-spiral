@@ -1,4 +1,4 @@
-var defaultOpts = {
+var DEFAULT_OPTS = {
   root: 'Q5582',
   property: 'P170',
   langs: ['en', 'fr'],
@@ -11,12 +11,12 @@ var defaultOpts = {
   unicodeIcons: false // forces text icon to always show
 };
 
-var optAliases = {
+var OPT_ALIASES = {
   query: 'wdq'
 };
 
-var userOpts = parseURLParams(defaultOpts, optAliases);
-var opts = buildFullOpts(defaultOpts, userOpts);
+var userOpts = parseURLParams(DEFAULT_OPTS, OPT_ALIASES);
+var opts = buildFullOpts(DEFAULT_OPTS, userOpts);
 
 /**
  * Makes a query for the slices of qid using opts.query. Accepts
@@ -25,6 +25,7 @@ var opts = buildFullOpts(defaultOpts, userOpts);
  *
  * @param {String} prop - Property (ex: 'P279')
  * @param {String} qid - QID of root (ex: 'Q2095')
+ * @return {Promise<String[]>} QIDs of all slices
  */
 function getSlices(prop, qid) {
   if (userOpts.wdq) {
@@ -58,85 +59,85 @@ var sm;
 // the initializing function which loads the root and its children
 function go(rootId, prop) {
   getSlices(opts.property, rootId)
-    .then(function(data) {
-      if(!data.length) return;
+  .then(function(data) {
+    if(!data.length) return;
 
-      var totalItems = data.length;
-      var unloadedChildren = [];
-      if(data.length > opts.pageSize) {
-        console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
+    var totalItems = data.length;
+    var unloadedChildren = [];
+    if(data.length > opts.pageSize) {
+      console.log("Showing first " +  opts.pageSize + " slices  of " + data.length + ".");
 
-        // data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
-        unloadedChildren = data.splice(opts.pageSize);
+      // data shrunk to first opts.pageSize elements, remaining put in unloadedChildren
+      unloadedChildren = data.splice(opts.pageSize);
+    }
+
+    WD.getQIDs([rootId].concat(data))
+    .done(function(data, textStatus, jqXHR) {
+      var rootEntity = new WD.Entity(data.entities[rootId]);
+
+      // Create new SMI for root
+      rootNode = new SpiralMenuItem({
+        title: rootEntity.getLabel(opts.langs),
+        href: rootEntity.getUrl(),
+        textIcon: opts.unicodeIcons ? rootEntity.getClaimValue('P487') : undefined
+      });
+      findImage(rootEntity, rootNode);
+
+      rootNode.entity = rootEntity;
+      rootNode.unloadedChildren = unloadedChildren; // for 'load more' option
+      rootNode.expectedLength = totalItems;
+
+      // load children and add to rootNode
+      for (var qid in data.entities) {
+        if (qid == rootId) continue;
+
+        var childEntity = new WD.Entity(data.entities[qid]);
+        var child = new SpiralMenuItem({
+          title: childEntity.getLabel(opts.langs),
+          href: childEntity.getUrl(),
+          textIcon: opts.unicodeIcons ? childEntity.getClaimValue('P487') : undefined
+        });
+        child.entity = childEntity;
+        findImage(childEntity, child);
+        rootNode.addChild(child);
       }
 
-      WD.getQIDs([rootId].concat(data))
-        .done(function(data, textStatus, jqXHR){
-          var rootEntity = new WD.Entity(data.entities[rootId]);
-
-          // Create new SMI for root
-          rootNode = new SpiralMenuItem({
-            title:    rootEntity.getLabel(opts.langs),
-            href:     rootEntity.getUrl(),
-            textIcon: opts.unicodeIcons ? rootEntity.getClaimValue('P487') : undefined
-          });
-          findImage(rootEntity, rootNode);
-
-          rootNode.entity = rootEntity;
-          rootNode.unloadedChildren = unloadedChildren; // for 'load more' option
-          rootNode.expectedLength = totalItems;
-
-          // load children and add to rootNode
-          for(var qid in data.entities) {
-            if (qid == rootId) continue;
-
-            var childEntity = new WD.Entity(data.entities[qid]);
-            var child = new SpiralMenuItem({
-              title:    childEntity.getLabel(opts.langs),
-              href:     childEntity.getUrl(),
-              textIcon: opts.unicodeIcons ? childEntity.getClaimValue('P487') : undefined
-            });
-            child.entity = childEntity;
-            findImage(childEntity, child);
-            rootNode.addChild(child);
-          }
-
-          // if there are unloaded children, add node at end to load more
-          if(unloadedChildren.length) {
-            var loadMoreChild = new SpiralMenuItem({
-              title: 'load more',
-              textIcon: '+',
-              onClick: loadMoreChildren
-            });
-            rootNode.addChild(loadMoreChild);
-          }
-
-          // draw!
-          if(!sm) {
-            sm = new SpiralMenu({
-              root: rootNode,
-              size: 600,
-              animate: false,
-              maxSlices: opts.slices,
-              autoScroll: opts.autoScroll,
-              onClick: clickHandler,
-              pageStart: opts.pageStart,
-              alwaysShowTextIcon: opts.unicodeIcons
-            });
-
-            sm.on('scroll', function() {
-              var sm = this;
-              var bounds = sm.getPageBounds();
-              $('.scroll-indicator').text(
-                (bounds.first+1) +'-' + (bounds.last+1) +
-                ' / ' + sm.currentRoot.expectedLength);
-            });
-          }
-
-          var svg = sm.draw();
-          svg.insertBefore(Snap('.scroll-indicator'));
+      // if there are unloaded children, add node at end to load more
+      if (unloadedChildren.length) {
+        var loadMoreChild = new SpiralMenuItem({
+          title: 'load more',
+          textIcon: '+',
+          onClick: loadMoreChildren
         });
+        rootNode.addChild(loadMoreChild);
+      }
+
+      // draw!
+      if(!sm) {
+        sm = new SpiralMenu({
+          root: rootNode,
+          size: 600,
+          animate: false,
+          maxSlices: opts.slices,
+          autoScroll: opts.autoScroll,
+          onClick: clickHandler,
+          pageStart: opts.pageStart,
+          alwaysShowTextIcon: opts.unicodeIcons
+        });
+
+        sm.on('scroll', function() {
+          var sm = this;
+          var bounds = sm.getPageBounds();
+          $('.scroll-indicator').text(
+            (bounds.first+1) + '-' + (bounds.last+1) +
+            ' / ' + sm.currentRoot.expectedLength);
+        });
+      }
+
+      var svg = sm.draw();
+      svg.insertBefore(Snap('.scroll-indicator'));
     });
+  });
 }
 
 
@@ -165,7 +166,6 @@ function clickHandler(isChild, smi) {
   }
 }
 
-// loads on the children
 function loadChildren(node, qid, prop){
   getSlices(prop, qid)
   .then(function(data) {

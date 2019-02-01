@@ -21,7 +21,7 @@ WD.getQIDs = function(qids) {
 /**
  * Perform a Wikidata query query
  * @param {String} query wdq query
- * @return {Promise<Array<String>>} the matching QIDs
+ * @return {Promise<String[]>} the matching QIDs
  */
 WD.WDQ = function(query) {
   return $.ajax({
@@ -36,8 +36,7 @@ WD.WDQ = function(query) {
 /**
  * Perform a Wikidata Query Service query
  * @param {String} query SPARQL query
- * @return {Promise<Object>} matching bindings. Note prefixes are removed from
- * QID values
+ * @return {Promise<String[]>} QIDs of matching binding values
  */
 WD.WDQS = function(query) {
   return $.ajax({
