@@ -77,6 +77,7 @@ SpiralMenu.prototype.draw = function() {
     });*/
 
     this.svg.spiral = this.svg.group().addClass('spiral');
+    this.svg.slices = this.svg.spiral.group().addClass('slices');
   }
 
   // draw slices

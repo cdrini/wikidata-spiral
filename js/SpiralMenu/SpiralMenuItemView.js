@@ -136,7 +136,7 @@ SpiralMenuItemView.prototype.drawSlice = function() {
 
 
   sm.slices[index] = this;
-  sm.svg.spiral.add(group);
+  sm.svg.slices.add(group);
   this.group = group;
   this.shape = shape;
 };
