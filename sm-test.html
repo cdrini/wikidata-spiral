@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" type="text/css" href="css/main.css" />
+  <link rel="stylesheet" type="text/css" href="css/spiralMenu.css" />
+
+  <title>Spiral Menu Test</title>
+</head>
+<body>
+  <!-- Snap.svg -->
+  <script src="js/lib/snap.svg-min.js"></script>
+
+  <!-- JQuery + plugins -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="js/lib/jquery.hotkeys.js"></script>
+
+  <!-- Original Scripting -->
+  <script src="js/spiralMenu.js"></script>
+  <script src="js/wikidata.js"></script>
+  <script>
+    var nodes = new SpiralMenuItem({ title: 'My Root',
+      backgroundImage: 'https://cdn.pixabay.com/photo/2014/10/13/17/52/flamingo-487039_640.jpg',
+      children: [
+        new SpiralMenuItem({ title: 'option a',
+          backgroundImage: 'https://cdn.pixabay.com/photo/2013/03/02/18/13/flamingo-89367_640.jpg'
+        }),
+        new SpiralMenuItem({ title: 'option b',
+          backgroundImage: 'https://cdn.pixabay.com/photo/2016/11/22/21/27/animal-1850622_640.jpg'
+        }),
+        new SpiralMenuItem({ title: 'option c',
+          backgroundImage: 'https://cdn.pixabay.com/photo/2015/02/18/05/16/flamingos-640306_640.png'
+        }),
+        new SpiralMenuItem({ title: 'option d',
+          backgroundImage: 'https://cdn.pixabay.com/photo/2012/10/14/11/27/pelican-61197_640.jpg',
+          children: [
+            new SpiralMenuItem({ title: 'sub-option a',
+              backgroundImage: 'https://cdn.pixabay.com/photo/2014/09/15/12/16/pelicans-446864_640.jpg'
+            }),
+            new SpiralMenuItem({ title: 'sub-option b' }),
+            new SpiralMenuItem({ title: 'sub-option c' })
+          ]
+        }),
+        new SpiralMenuItem({ title: 'option e',
+          backgroundImage: 'https://cdn.pixabay.com/photo/2014/11/15/20/42/flamingo-532672_640.jpg'
+        })
+      ]
+    });
+
+    var sm = new SpiralMenu({
+      root: nodes,
+      size: 600,
+      animate: false
+    });
+
+    sm.draw();
+  </script>
+
+</body>
+</html>
