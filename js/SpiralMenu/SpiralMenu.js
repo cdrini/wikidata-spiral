@@ -365,6 +365,8 @@ SpiralMenu.prototype.demoteRoot = function() {
     this.slices[i].destroy();
   }
 
+  sm.currentRoot.view.group.addClass('demoting');
+
   // animate root to slice
   sm.sliceCount = this.currentRoot.parentSliceCount;
   var absIndex = this.currentRoot.parent.indexOf(this.currentRoot);
@@ -385,7 +387,6 @@ SpiralMenu.prototype.demoteRoot = function() {
     sm.draw();
   });
   sm.currentRoot.view.update();
-
 };
 
 /**

@@ -165,6 +165,46 @@ SpiralMenuItemView.prototype.drawRoot = function() {
   });
   group.add(shape);
 
+  // create shadow circle
+  var shadowCircle = s.path(sm.innerCirclePath());
+  shadowCircle.attr({ class: 'shadow-circle' });
+  group.add(shadowCircle);
+
+  // create hover group
+  if (smi.parent) {
+    group.addClass('has-parent');
+    var hoverGroup = s.group();
+    hoverGroup.attr({ class: 'hover-group' });
+
+    // circle
+    var hoverCircle = s.path(sm.innerCirclePath());
+    hoverCircle.attr({ class: 'hover-circle' });
+    hoverGroup.add(hoverCircle);
+    // Arrow
+    var arrow = s.path('m 31,2 0,60 M 2,31 31,2 59.75,31');
+    arrow.attr({
+      class: 'up-arrow',
+      style: 'stroke:#f9f9f9;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;opacity:0.75;fill: none;'
+    });
+    var arrow_w = 61.842;
+    var arrow_h = 64;
+    var arrow_x = sm.center.x - arrow_w/2; // center
+    var arrow_y = sm.center.y - arrow_h - sm.innerRadius*.25;
+    arrow.transform('translate(' + arrow_x + ', ' + arrow_y + ')');
+    hoverGroup.add(arrow);
+
+    // text
+    var hoverText = s.text(sm.center.x, sm.center.y + sm.innerRadius*.2, [smi.parent.title]);
+    hoverText.select('tspan').attr({
+      class: 'root-title',
+      textAnchor: 'middle',
+      alignmentBaseline: 'middle'
+    });
+    hoverGroup.add(hoverText);
+
+    group.add(hoverGroup);
+  }
+
   // create background image
   if (smi.backgroundImage) {
     // create circle for clipping

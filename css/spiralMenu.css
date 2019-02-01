@@ -22,8 +22,40 @@ svg {
   fill: #CCC;
 }
 
+/* Root */
 .root {
+  transition: transform 0.2s;
+}
+.root .hover-circle {
   fill: #069;
+}
+.root .root-title {
+  font-size: 2em;
+  font-style: italic;
+  fill: #f9f9f9;
+}
+.root .shadow-circle {
+  transform-origin: 50%;
+  fill: rgba(0,0,0,0.5);
+  transform: scale(1.04);
+  transition: transform 0.2s;
+}
+.root image, .root .main-circle {
+  transition: opacity 0.2s;
+}
+
+.root.has-parent:not(.demoting):hover image, .root.has-parent:not(.demoting):hover .main-circle {
+  opacity: 0;
+}
+.root.has-parent:not(.demoting):hover .shadow-circle {
+  transform: scale(1.02);
+}
+.root.has-parent:not(.demoting):hover {
+  transform: scale(1.4);
+}
+
+.root.demoting .hover-group, .root.demoting .shadow-circle {
+  opacity: 0;
 }
 
 .title {
