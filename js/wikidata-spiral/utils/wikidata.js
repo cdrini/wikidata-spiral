@@ -50,7 +50,7 @@ function _findImage(entity, smi) {
     'P181'      // taxon range map image
   );
 
-  if(!imgs) return null;
+  if(!imgs || !imgs[0].mainsnak.datavalue) return null;
 
   return $.ajax({
     url:'https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&iilimit=1&iiurlwidth=400&titles=' +
