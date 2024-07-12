@@ -6,7 +6,7 @@ var DEFAULT_OPTS = {
   slices: 12,
   autoScroll: false,
   wdq: 'CLAIM[$property:$root]',
-  sparql: 'SELECT ?x WHERE { ?x wdt:$property wd:$root }',
+  sparql: 'SELECT ?x WHERE { ?x $property $root }',
   pageStart: 0,
   unicodeIcons: false // forces text icon to always show
 };
@@ -37,8 +37,8 @@ function getSlices(prop, qid) {
   else {
     // Default to sparql
     var query = decodeURIComponent(opts.sparql);
-    query = query.replace(/\$root/g, qid);
-    query = query.replace(/\$property/g, prop);
+    query = query.replace(/\$root/g, 'wd:' + qid);
+    query = query.replace(/\$property/g, prop.replace(/(?<!:)P/g, 'wdt:P'));
     // support shorthand SPARQL
     if (query.indexOf('{') == -1) {
       var prefix = 'SELECT ?x WHERE { ';
