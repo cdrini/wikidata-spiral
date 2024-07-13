@@ -136,7 +136,7 @@ function updateWpPanel(smi) {
   }
   var matchingLang = opts.langs.find(lang => (lang + 'wiki') in smi.entity.entity.sitelinks);
   if (!matchingLang) {
-    var aLang = Object.keys(smi.entity.entity.sitelinks)[0];
+    var aLang = Object.keys(smi.entity.entity.sitelinks).find(sl => sl != 'commonswiki');
     if (aLang) {
       matchingLang = aLang.slice(0, -4);
     }
