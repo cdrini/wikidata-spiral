@@ -141,7 +141,7 @@ function updateWpPanel(smi) {
       matchingLang = aLang.slice(0, -4);
     }
   }
-  console.log(smi.entity);
+
   if (matchingLang) {
     var wpTitle = smi.entity.entity.sitelinks[matchingLang + 'wiki'].title;
     $('iframe')[0].src = 'https://' + matchingLang + '.m.wikipedia.org/wiki/' + encodeURIComponent(wpTitle);
