@@ -43,7 +43,11 @@ svg {
 .root image, .root .main-circle {
   transition: opacity 0.2s;
 }
-
+.slices, .root {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 .root.has-parent:not(.demoting):hover image, .root.has-parent:not(.demoting):hover .main-circle {
   opacity: 0;
 }
