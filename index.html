@@ -12,16 +12,27 @@
 
   <div id="main">
     <div class="scroll-indicator"></div>
+    <div class="wp-panel" style="display: none;">
+      <iframe></iframe>
+    </div>
   </div>
   <footer id="footer">
     <nav>
       [
       <a target="_blank" href="https://github.com/cdrini/wikidata-spiral">GitHub</a>
       | <a target="_blank" href="https://github.com/cdrini/wikidata-spiral#usage">Help</a>
-      | <a class="examples" target="_blank" href="https://github.com/cdrini/wikidata-spiral#examples">Examples</a>
+      | <a data-popup="options" href="#">Options</a>
+      | <a data-popup="examples" href="https://github.com/cdrini/wikidata-spiral#examples">Examples</a>
       ]
     </nav>
   </footer>
+  <div id="options" class="popup">
+    <form class="main">
+      <label>
+        <input type="checkbox" name="show_wp_panel" checked> Show Wikipedia Panel
+      </label>
+    </form>
+  </div>
   <div id="examples" class="popup">
     <ul class="main">
       <li><a href="?root=Q2095&property=P279">Explore food</a></li>

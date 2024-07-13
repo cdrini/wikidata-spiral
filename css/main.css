@@ -103,10 +103,28 @@ ul {
   border-bottom: 1px solid rgba(255,255,255,0.3);
 }
 
-#examples a {
+.popup a, .popup label {
   display: block;
   text-decoration: none;
   color: inherit;
   padding: .6em 1em;
   line-height: 1.5em;
+}
+
+
+.wp-panel {
+  position: absolute;
+  width: 350px;
+  top: 20px;
+  left: 750px;
+  bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+  overflow: clip;
+}
+
+.wp-panel iframe {
+  border: 0;
+  width: 100%;
+  height: 100%;
 }

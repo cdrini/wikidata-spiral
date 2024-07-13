@@ -112,6 +112,8 @@ function go(rootId, prop) {
           alwaysShowTextIcon: opts.unicodeIcons
         });
 
+        updateWpPanel(sm.currentRoot);
+
         sm.on('scroll', function() {
           var sm = this;
           var bounds = sm.getPageBounds();
@@ -128,11 +130,35 @@ function go(rootId, prop) {
 }
 
 
+function updateWpPanel(smi) {
+  if (!$('#options [name=show_wp_panel]').is(":checked")) {
+    return;
+  }
+  var matchingLang = opts.langs.find(lang => (lang + 'wiki') in smi.entity.entity.sitelinks);
+  if (!matchingLang) {
+    var aLang = Object.keys(smi.entity.entity.sitelinks)[0];
+    if (aLang) {
+      matchingLang = aLang.slice(0, -4);
+    }
+  }
+  console.log(smi.entity);
+  if (matchingLang) {
+    var wpTitle = smi.entity.entity.sitelinks[matchingLang + 'wiki'].title;
+    $('iframe')[0].src = 'https://' + matchingLang + '.m.wikipedia.org/wiki/' + encodeURIComponent(wpTitle);
+  } else {
+    $('iframe')[0].src = 'https://m.wikidata.org/wiki/' + smi.entity.entity.title;
+  }
+  $('.wp-panel').fadeIn();
+}
+
+
 function clickHandler(isChild, smi) {
   if(!smi.entity) {
     // clicked on a non-wd-item slice
     return;
   }
+
+  updateWpPanel(smi);
 
   if(!isChild && !smi.parent) {
     // should try to find a parent, displaying options if multiple options
@@ -272,8 +298,33 @@ Snap(document.body).touchend(function(ev) {
   }
 });
 
-$('a.examples').on('click', function(ev) {
+$('[data-popup]').on('click', function(ev) {
   ev.preventDefault();
-  $('a.examples').toggleClass('active');
-  $('#examples').fadeToggle(100);
+  var popupId = $(ev.target).data('popup');
+  var $popup = $('#' + popupId);
+  var $link = $(ev.target);
+
+  $('[data-popup]').not($link).removeClass('active');
+  $('.popup').not($popup).fadeOut(100);
+  
+  $link.toggleClass('active');
+  $popup.fadeToggle(100);
+});
+
+$(document.body).on('click', function(ev) {
+  var $target = $(ev.target);
+  if ($target.closest('.popup,[data-popup]').length) {
+    return;
+  }
+
+  $('[data-popup]').removeClass('active');
+  $('.popup').fadeOut(100);
+});
+
+$('#options [name=show_wp_panel]').on('change', function(ev) {
+  if ($('#options [name=show_wp_panel]').is(":checked")) {
+    $('.wp-panel').fadeIn();
+  } else {
+    $('.wp-panel').fadeOut();
+  }
 });
